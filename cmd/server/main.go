@@ -31,7 +31,8 @@ func main() {
 }
 
 func collectorHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" && r.Header.Get("Content-Type") == "text/plain" {
+	// if r.Method == "POST" && r.Header.Get("Content-Type") == "text/plain" {
+	if r.Method == "POST" {
 		// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
 		path := strings.Split(r.URL.Path, "/")
 
@@ -65,6 +66,9 @@ func collectorHandler(w http.ResponseWriter, r *http.Request) {
 
 		// w.WriteHeader(http.StatusOK)
 		// w.Write([]byte("test: " + test))
+		return
+	} else {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 }
