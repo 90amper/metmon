@@ -32,6 +32,7 @@ func main() {
 
 func collectorHandler(w http.ResponseWriter, r *http.Request) {
 	// if r.Method == "POST" && r.Header.Get("Content-Type") == "text/plain" {
+	fmt.Println(r.Method, r.URL.Path)
 	if r.Method == "POST" {
 		// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
 		path := strings.Split(r.URL.Path, "/")

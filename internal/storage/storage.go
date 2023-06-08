@@ -36,3 +36,8 @@ func (s *Storage) TickCounter(name string) error {
 	}
 	return nil
 }
+
+func (s *Storage) CleanGauges() error {
+	s.Gauge = nil
+	return nil
+}
