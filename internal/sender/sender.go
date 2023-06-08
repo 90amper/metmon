@@ -3,21 +3,31 @@ package sender
 import (
 	"fmt"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 )
 
 type Sender struct {
-	client  *http.Client
-	destURL string
+	client         *http.Client
+	destURL        string
+	reportInterval time.Duration
+	storage        *storage.Storage
 }
 
-func NewSender(config models.AgentConfig) *Sender {
-	return &Sender{
-		client:  &http.Client{},
-		destURL: config.DestURL,
+func NewSender(config models.AgentConfig, storage *storage.Storage) (*Sender, error) {
+	reportInterval, err := time.ParseDuration(config.ReportInterval)
+	if err != nil {
+		return nil, err
 	}
+	return &Sender{
+		client:         &http.Client{},
+		destURL:        config.DestURL,
+		reportInterval: reportInterval,
+		storage:        storage,
+	}, nil
 }
 
 func (s *Sender) Post(path string) error {
@@ -42,21 +52,22 @@ func (s *Sender) Post(path string) error {
 	return nil
 }
 
-func (s *Sender) SendStore(store storage.Storage) (err error) {
-	err = s.SendGauges(store.Gauge)
+func (s *Sender) SendStore() (err error) {
+	err = s.SendGauges()
 	if err != nil {
 		return
 	}
-	err = s.SendCounters(store.Counter)
+	err = s.SendCounters()
 	if err != nil {
 		return
 	}
 	return nil
 }
 
-func (s *Sender) SendGauges(gauges storage.GaugeStore) error {
+func (s *Sender) SendGauges() error {
 	basePath := "update/gauge"
-	for name, values := range gauges {
+
+	for name, values := range s.storage.Gauge {
 		namePath := basePath + "/" + name
 		for _, value := range values {
 			path := namePath + "/" + fmt.Sprintf("%f", value)
@@ -70,9 +81,9 @@ func (s *Sender) SendGauges(gauges storage.GaugeStore) error {
 	return nil
 }
 
-func (s *Sender) SendCounters(counters storage.CounterStore) error {
+func (s *Sender) SendCounters() error {
 	basePath := "update/counter"
-	for name, value := range counters {
+	for name, value := range s.storage.Counter {
 		namePath := basePath + "/" + name
 		path := namePath + "/" + fmt.Sprintf("%d", value)
 		err := s.Post(path)
@@ -82,4 +93,15 @@ func (s *Sender) SendCounters(counters storage.CounterStore) error {
 		}
 	}
 	return nil
+}
+
+func (s *Sender) Run(wg *sync.WaitGroup) error {
+	defer wg.Done()
+	for {
+		err := s.SendStore()
+		if err != nil {
+			return err
+		}
+		time.Sleep(s.reportInterval)
+	}
 }

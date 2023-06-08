@@ -4,17 +4,27 @@ import (
 	"math/rand"
 	"reflect"
 	"runtime"
+	"sync"
+	"time"
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 )
 
 type Collector struct {
-	Storage *storage.Storage
+	Storage      *storage.Storage
+	PollInterval time.Duration
 }
 
-func NewCollector(storage *storage.Storage) *Collector {
-	return &Collector{Storage: storage}
+func NewCollector(config models.AgentConfig, storage *storage.Storage) (*Collector, error) {
+	pollInterval, err := time.ParseDuration(config.PollInterval)
+	if err != nil {
+		return nil, err
+	}
+	return &Collector{
+		Storage:      storage,
+		PollInterval: pollInterval,
+	}, nil
 }
 
 func (c *Collector) Collect() error {
@@ -53,4 +63,15 @@ func (c *Collector) ReadAddonMetrics() {
 	c.Storage.TickCounter("PollCount")
 	c.Storage.AddGauge("RandomValue", models.Gauge(rand.Float64()))
 
+}
+
+func (c *Collector) Run(wg *sync.WaitGroup) error {
+	defer wg.Done()
+	for {
+		err := c.Collect()
+		if err != nil {
+			return err
+		}
+		time.Sleep(c.PollInterval)
+	}
 }
