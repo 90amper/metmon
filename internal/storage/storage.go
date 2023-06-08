@@ -21,6 +21,9 @@ func NewStorage() *Storage {
 }
 
 func (s *Storage) AddGauge(name string, value models.Gauge) error {
+	if s.Gauge == nil {
+		s.Gauge = make(GaugeStore)
+	}
 	if _, ok := s.Gauge[name]; !ok {
 		s.Gauge[name] = []models.Gauge{}
 	}

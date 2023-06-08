@@ -1,12 +1,14 @@
 package collector
 
 import (
+	"fmt"
 	"math/rand"
 	"reflect"
 	"runtime"
 	"sync"
 	"time"
 
+	"github.com/90amper/metmon/internal/config"
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 )
@@ -16,7 +18,7 @@ type Collector struct {
 	PollInterval time.Duration
 }
 
-func NewCollector(config models.AgentConfig, storage *storage.Storage) (*Collector, error) {
+func NewCollector(config config.AgentConfig, storage *storage.Storage) (*Collector, error) {
 	pollInterval, err := time.ParseDuration(config.PollInterval)
 	if err != nil {
 		return nil, err
@@ -66,6 +68,7 @@ func (c *Collector) ReadAddonMetrics() {
 }
 
 func (c *Collector) Run(wg *sync.WaitGroup) error {
+	fmt.Println("Collector started")
 	defer wg.Done()
 	for {
 		err := c.Collect()

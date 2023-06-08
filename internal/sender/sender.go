@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/90amper/metmon/internal/models"
+	"github.com/90amper/metmon/internal/config"
 	"github.com/90amper/metmon/internal/storage"
 )
 
@@ -17,7 +17,7 @@ type Sender struct {
 	storage        *storage.Storage
 }
 
-func NewSender(config models.AgentConfig, storage *storage.Storage) (*Sender, error) {
+func NewSender(config config.AgentConfig, storage *storage.Storage) (*Sender, error) {
 	reportInterval, err := time.ParseDuration(config.ReportInterval)
 	if err != nil {
 		return nil, err
@@ -57,6 +57,11 @@ func (s *Sender) SendStore() (err error) {
 	if err != nil {
 		return
 	}
+	err = s.storage.CleanGauges()
+	if err != nil {
+		return
+	}
+
 	err = s.SendCounters()
 	if err != nil {
 		return
@@ -96,6 +101,7 @@ func (s *Sender) SendCounters() error {
 }
 
 func (s *Sender) Run(wg *sync.WaitGroup) error {
+	fmt.Println("Sender started")
 	defer wg.Done()
 	for {
 		err := s.SendStore()
