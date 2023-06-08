@@ -21,7 +21,7 @@ type Agent struct {
 var config = models.AgentConfig{
 	PollInterval:   "2s",
 	ReportInterval: "10s",
-	DestUrl:        "http://localhost:8080",
+	DestURL:        "http://localhost:8080",
 }
 
 func NewAgent(config models.AgentConfig) *Agent {

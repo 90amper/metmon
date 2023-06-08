@@ -65,13 +65,13 @@ func collectorHandler(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("%+v\r\n", MemStor)
+		// fmt.Printf("%+v\r\n", MemStor)
 
 		// test := strings.Join(path, " | ")
 
-		w.WriteHeader(http.StatusInternalServerError)
+		// w.WriteHeader(http.StatusInternalServerError)
 		// w.Write([]byte("test: " + test))
-		return
+		// return
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return

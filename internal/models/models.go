@@ -8,5 +8,5 @@ type (
 type AgentConfig = struct {
 	PollInterval   string
 	ReportInterval string
-	DestUrl        string
+	DestURL        string
 }

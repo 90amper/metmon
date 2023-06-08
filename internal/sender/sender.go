@@ -10,19 +10,19 @@ import (
 
 type Sender struct {
 	client  *http.Client
-	destUrl string
+	destURL string
 }
 
 func NewSender(config models.AgentConfig) *Sender {
 	return &Sender{
 		client:  &http.Client{},
-		destUrl: config.DestUrl,
+		destURL: config.DestURL,
 	}
 }
 
 func (s *Sender) Post(path string) error {
 	fmt.Println(path)
-	req, err := http.NewRequest(http.MethodPost, s.destUrl+"/"+path, nil)
+	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, nil)
 	if err != nil {
 		return err
 	}
