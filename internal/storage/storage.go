@@ -23,9 +23,8 @@ func NewStorage() *Storage {
 func (s *Storage) AddGauge(name string, value models.Gauge) error {
 	if _, ok := s.Gauge[name]; !ok {
 		s.Gauge[name] = []models.Gauge{}
-	} else {
-		s.Gauge[name] = append(s.Gauge[name], value)
 	}
+	s.Gauge[name] = append(s.Gauge[name], value)
 	return nil
 }
 
