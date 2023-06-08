@@ -48,6 +48,8 @@ func collectorHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			MemStor.counter[path[3]] += vali
+			w.Write([]byte(fmt.Sprintf("%+v\r\n", MemStor)))
+			return
 		} else if path[2] == "gauge" {
 			valf, err := strconv.ParseFloat(path[4], 64)
 			if err != nil {
@@ -55,8 +57,10 @@ func collectorHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			MemStor.gauge[path[3]] = valf
+			w.Write([]byte(fmt.Sprintf("%+v\r\n", MemStor)))
+			return
 		} else {
-			println(path)
+			// println(path)
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
@@ -64,7 +68,7 @@ func collectorHandler(w http.ResponseWriter, r *http.Request) {
 
 		// test := strings.Join(path, " | ")
 
-		// w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusInternalServerError)
 		// w.Write([]byte("test: " + test))
 		return
 	} else {
