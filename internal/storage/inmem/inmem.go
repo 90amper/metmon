@@ -32,9 +32,9 @@ func (s *MemStorage) AddCounter(name string, value models.Counter) error {
 	}
 	if _, ok := s.Counters[name]; !ok {
 		s.Counters[name] = 0
-	} else {
-		s.Counters[name] += value
 	}
+	s.Counters[name] += value
+
 	return nil
 }
 
@@ -43,15 +43,21 @@ func (s *MemStorage) TickCounter(name string) error {
 		s.Counters = make(models.CounterStore)
 	}
 	if _, ok := s.Counters[name]; !ok {
-		s.Counters[name] = 1
-	} else {
-		s.Counters[name]++
+		s.Counters[name] = 0
 	}
+
+	s.Counters[name]++
+
 	return nil
 }
 
 func (s *MemStorage) CleanGauges() error {
 	s.Gauges = nil
+	return nil
+}
+
+func (s *MemStorage) ResetCounters() error {
+	s.Counters = make(models.CounterStore)
 	return nil
 }
 

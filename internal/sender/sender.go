@@ -66,6 +66,11 @@ func (s *Sender) SendStore() (err error) {
 	if err != nil {
 		return
 	}
+	err = s.storage.ResetCounters()
+	if err != nil {
+		return
+	}
+
 	return nil
 }
 
