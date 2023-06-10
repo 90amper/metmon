@@ -43,7 +43,7 @@ func (s *MemStorage) TickCounter(name string) error {
 		s.Counters = make(models.CounterStore)
 	}
 	if _, ok := s.Counters[name]; !ok {
-		s.Counters[name] = 0
+		s.Counters[name] = 1
 	} else {
 		s.Counters[name]++
 	}
