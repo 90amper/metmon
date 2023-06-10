@@ -14,11 +14,11 @@ import (
 )
 
 type Collector struct {
-	Storage      *storage.Storage
+	Storage      storage.Storager
 	PollInterval time.Duration
 }
 
-func NewCollector(config config.AgentConfig, storage *storage.Storage) (*Collector, error) {
+func NewCollector(config config.AgentConfig, storage storage.Storager) (*Collector, error) {
 	pollInterval, err := time.ParseDuration(config.PollInterval)
 	if err != nil {
 		return nil, err

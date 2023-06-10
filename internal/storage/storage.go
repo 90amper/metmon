@@ -2,45 +2,17 @@ package storage
 
 import (
 	"github.com/90amper/metmon/internal/models"
+	"github.com/90amper/metmon/internal/storage/inmem"
 )
 
-type GaugeStore map[string][]models.Gauge
-type CounterStore map[string]models.Counter
-
-type Storage struct {
-	Gauge   GaugeStore
-	Counter CounterStore
+type Storager interface {
+	AddGauge(name string, value models.Gauge) error
+	TickCounter(name string) error
+	CleanGauges() error
+	GetGauges() (models.GaugeStore, error)
+	GetCounters() (models.CounterStore, error)
 }
 
-func NewStorage() *Storage {
-	storage := Storage{
-		Counter: make(CounterStore),
-		Gauge:   make(GaugeStore),
-	}
-	return &storage
-}
-
-func (s *Storage) AddGauge(name string, value models.Gauge) error {
-	if s.Gauge == nil {
-		s.Gauge = make(GaugeStore)
-	}
-	if _, ok := s.Gauge[name]; !ok {
-		s.Gauge[name] = []models.Gauge{}
-	}
-	s.Gauge[name] = append(s.Gauge[name], value)
-	return nil
-}
-
-func (s *Storage) TickCounter(name string) error {
-	if _, ok := s.Counter[name]; !ok {
-		s.Counter[name] = 0
-	} else {
-		s.Counter[name]++
-	}
-	return nil
-}
-
-func (s *Storage) CleanGauges() error {
-	s.Gauge = nil
-	return nil
+func NewStorage() Storager {
+	return inmem.NewInMem()
 }

@@ -12,7 +12,7 @@ import (
 type Agent struct {
 	PollInterval   time.Duration
 	ReportInterval time.Duration
-	Storage        *storage.Storage
+	Storage        storage.Storager
 	Collector      *collector.Collector
 	Sender         *sender.Sender
 }

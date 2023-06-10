@@ -14,10 +14,10 @@ type Sender struct {
 	client         *http.Client
 	destURL        string
 	reportInterval time.Duration
-	storage        *storage.Storage
+	storage        storage.Storager
 }
 
-func NewSender(config config.AgentConfig, storage *storage.Storage) (*Sender, error) {
+func NewSender(config config.AgentConfig, storage storage.Storager) (*Sender, error) {
 	reportInterval, err := time.ParseDuration(config.ReportInterval)
 	if err != nil {
 		return nil, err
@@ -71,8 +71,11 @@ func (s *Sender) SendStore() (err error) {
 
 func (s *Sender) SendGauges() error {
 	basePath := "update/gauge"
-
-	for name, values := range s.storage.Gauge {
+	gauges, err := s.storage.GetGauges()
+	if err != nil {
+		return err
+	}
+	for name, values := range gauges {
 		namePath := basePath + "/" + name
 		for _, value := range values {
 			path := namePath + "/" + fmt.Sprintf("%f", value)
@@ -88,7 +91,11 @@ func (s *Sender) SendGauges() error {
 
 func (s *Sender) SendCounters() error {
 	basePath := "update/counter"
-	for name, value := range s.storage.Counter {
+	counters, err := s.storage.GetCounters()
+	if err != nil {
+		return err
+	}
+	for name, value := range counters {
 		namePath := basePath + "/" + name
 		path := namePath + "/" + fmt.Sprintf("%d", value)
 		err := s.Post(path)
