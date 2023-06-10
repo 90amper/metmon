@@ -1,73 +1,115 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
+	"time"
 
+	"github.com/90amper/metmon/internal/server/handlers"
+	"github.com/90amper/metmon/internal/storage"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
-func Run() {
-	r := chi.NewRouter()
-	r.Get("/", func(rw http.ResponseWriter, r *http.Request) {
-		rw.Write([]byte("chi"))
-	})
+type Server struct {
+	timeout time.Duration
+	deep    int64
+	Storage storage.Storager
+	Router  *chi.Mux
+	Wrapper *handlers.Wrapper
+}
 
-	err := http.ListenAndServe(`:8080`, r)
+func (s *Server) NewRouter() *chi.Mux {
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Get("/", s.Wrapper.GetAllMetrics)
+	r.Route("/value", func(r chi.Router) {
+		r.Route("/{type}", func(r chi.Router) {
+			r.Get("/{name}", s.Wrapper.GetCurrentMetric)
+		})
+	})
+	r.Route("/update", func(r chi.Router) {
+		r.Route("/{type}", func(r chi.Router) {
+			r.Route("/{name}", func(r chi.Router) {
+				r.Post("/{value}", s.Wrapper.ReceiveMetrics)
+			})
+		})
+	})
+	// r.Get("/value/{type}/{name}", s.Wrapper.GetCurrentMetric)
+	// r.Post("/update/{type}/{name}/{value}", s.Wrapper.ReceiveMetrics)
+	return r
+}
+
+func NewServer() (srv *Server, err error) {
+	srv = &Server{}
+	srv.Storage = storage.NewStorage()
+	srv.Wrapper, err = handlers.NewWrapper(srv.Storage)
+	srv.Router = srv.NewRouter()
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	return srv, nil
 }
 
-func collectorHandler(w http.ResponseWriter, r *http.Request) {
-	// if r.Method == "POST" && r.Header.Get("Content-Type") == "text/plain" {
-	fmt.Println(r.Method, r.URL.Path)
-	if r.Method == "POST" {
-		// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
-		path := strings.Split(r.URL.Path, "/")
-
-		if len(path) < 5 {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		if path[2] == "counter" {
-			vali, err := strconv.ParseInt(path[4], 10, 64)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			fmt.Printf("%+v\n", vali)
-			// MemStor.counter[path[3]] += vali
-			// w.Write([]byte(fmt.Sprintf("%+v\r\n", MemStor)))
-			return
-		} else if path[2] == "gauge" {
-			valf, err := strconv.ParseFloat(path[4], 64)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			// MemStor.gauge[path[3]] = valf
-			// w.Write([]byte(fmt.Sprintf("%+v\r\n", MemStor)))
-			fmt.Printf("%+v\n", valf)
-			return
-		} else {
-			// println(path)
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		// fmt.Printf("%+v\r\n", MemStor)
-
-		// test := strings.Join(path, " | ")
-
-		// w.WriteHeader(http.StatusInternalServerError)
-		// w.Write([]byte("test: " + test))
-		// return
-	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
+func Run() (err error) {
+	srv, err := NewServer()
+	if err != nil {
+		return err
 	}
+
+	err = http.ListenAndServe(`:8080`, srv.Router)
+	if err != nil {
+		return (err)
+	}
+	return nil
 }
+
+// func collectorHandler(w http.ResponseWriter, r *http.Request) {
+// 	// if r.Method == "POST" && r.Header.Get("Content-Type") == "text/plain" {
+// 	fmt.Println(r.Method, r.URL.Path)
+// 	if r.Method == "POST" {
+// 		// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
+// 		path := strings.Split(r.URL.Path, "/")
+
+// 		if len(path) < 5 {
+// 			w.WriteHeader(http.StatusNotFound)
+// 			return
+// 		}
+
+// 		if path[2] == "counter" {
+// 			vali, err := strconv.ParseInt(path[4], 10, 64)
+// 			if err != nil {
+// 				w.WriteHeader(http.StatusBadRequest)
+// 				return
+// 			}
+// 			fmt.Printf("%+v\n", vali)
+// 			// MemStor.counter[path[3]] += vali
+// 			// w.Write([]byte(fmt.Sprintf("%+v\r\n", MemStor)))
+// 			return
+// 		} else if path[2] == "gauge" {
+// 			valf, err := strconv.ParseFloat(path[4], 64)
+// 			if err != nil {
+// 				w.WriteHeader(http.StatusBadRequest)
+// 				return
+// 			}
+// 			// MemStor.gauge[path[3]] = valf
+// 			// w.Write([]byte(fmt.Sprintf("%+v\r\n", MemStor)))
+// 			fmt.Printf("%+v\n", valf)
+// 			return
+// 		} else {
+// 			// println(path)
+// 			w.WriteHeader(http.StatusBadRequest)
+// 			return
+// 		}
+// 		// fmt.Printf("%+v\r\n", MemStor)
+
+// 		// test := strings.Join(path, " | ")
+
+// 		// w.WriteHeader(http.StatusInternalServerError)
+// 		// w.Write([]byte("test: " + test))
+// 		// return
+// 	} else {
+// 		w.WriteHeader(http.StatusMethodNotAllowed)
+// 		return
+// 	}
+// }
