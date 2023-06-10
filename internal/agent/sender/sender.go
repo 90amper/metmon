@@ -80,6 +80,9 @@ func (s *Sender) SendGauges() error {
 	if err != nil {
 		return err
 	}
+	if gauges == nil {
+		return nil
+	}
 	for name, values := range gauges {
 		namePath := basePath + "/" + name
 		for _, value := range values {
@@ -100,13 +103,16 @@ func (s *Sender) SendCounters() error {
 	if err != nil {
 		return err
 	}
+	if counters == nil {
+		return nil
+	}
 	for name, value := range counters {
 		namePath := basePath + "/" + name
 		path := namePath + "/" + fmt.Sprintf("%d", value)
 		err := s.Post(path)
 		if err != nil {
-			// return err
 			fmt.Println(err.Error())
+			// return err
 		}
 	}
 	return nil

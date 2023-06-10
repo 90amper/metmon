@@ -12,3 +12,9 @@ type CounterStore map[string]Counter
 type GaugeList map[string]Gauge
 
 // type CounterList map[string]Counter
+
+type CmdFlags struct {
+	ServerUrl      string
+	ReportInterval int
+	PollInterval   int
+}

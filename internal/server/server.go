@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/90amper/metmon/internal/config"
+	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/server/handlers"
 	"github.com/90amper/metmon/internal/storage"
 	"github.com/go-chi/chi/v5"
@@ -56,8 +58,8 @@ func Run() (err error) {
 	if err != nil {
 		return err
 	}
-
-	err = http.ListenAndServe(`:8080`, srv.Router)
+	logger.Log("Starting server at " + config.CmdFlags.ServerUrl)
+	err = http.ListenAndServe(config.CmdFlags.ServerUrl, srv.Router)
 	if err != nil {
 		return (err)
 	}
