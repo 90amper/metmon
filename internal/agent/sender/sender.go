@@ -21,7 +21,7 @@ func NewSender(config models.Config, storage storage.Storager) (*Sender, error) 
 	reportInterval := time.Duration(config.ReportInterval) * time.Second
 	return &Sender{
 		client:         &http.Client{},
-		destURL:        config.ServerURL,
+		destURL:        "http://" + config.ServerURL,
 		reportInterval: reportInterval,
 		storage:        storage,
 	}, nil
