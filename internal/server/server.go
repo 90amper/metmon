@@ -58,8 +58,8 @@ func Run() (err error) {
 	if err != nil {
 		return err
 	}
-	logger.Log("Starting server at " + config.CmdFlags.ServerUrl)
-	err = http.ListenAndServe(config.CmdFlags.ServerUrl, srv.Router)
+	logger.Log("Starting server at " + config.Config.ServerURL)
+	err = http.ListenAndServe(config.Config.ServerURL, srv.Router)
 	if err != nil {
 		return (err)
 	}
