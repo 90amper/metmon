@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/90amper/metmon/internal/config"
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 )
@@ -18,11 +17,8 @@ type Collector struct {
 	PollInterval time.Duration
 }
 
-func NewCollector(config config.AgentConfig, storage storage.Storager) (*Collector, error) {
-	pollInterval, err := time.ParseDuration(config.PollInterval)
-	if err != nil {
-		return nil, err
-	}
+func NewCollector(config models.Config, storage storage.Storager) (*Collector, error) {
+	pollInterval := time.Duration(config.PollInterval) * time.Second
 	return &Collector{
 		Storage:      storage,
 		PollInterval: pollInterval,

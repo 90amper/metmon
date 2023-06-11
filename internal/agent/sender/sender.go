@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/90amper/metmon/internal/config"
+	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 )
 
@@ -17,14 +17,11 @@ type Sender struct {
 	storage        storage.Storager
 }
 
-func NewSender(config config.AgentConfig, storage storage.Storager) (*Sender, error) {
-	reportInterval, err := time.ParseDuration(config.ReportInterval)
-	if err != nil {
-		return nil, err
-	}
+func NewSender(config models.Config, storage storage.Storager) (*Sender, error) {
+	reportInterval := time.Duration(config.ReportInterval) * time.Second
 	return &Sender{
 		client:         &http.Client{},
-		destURL:        config.DestURL,
+		destURL:        config.ServerURL,
 		reportInterval: reportInterval,
 		storage:        storage,
 	}, nil

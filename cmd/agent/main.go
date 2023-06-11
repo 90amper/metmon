@@ -10,12 +10,7 @@ import (
 )
 
 func main() {
-	agentConfig := config.AgentConfig{
-		PollInterval:   fmt.Sprint(config.CmdFlags.PollInterval) + "s",   //2s
-		ReportInterval: fmt.Sprint(config.CmdFlags.ReportInterval) + "s", //"10s"
-		DestURL:        "http://" + config.CmdFlags.ServerUrl,
-	}
-	agent, err := agent.NewAgent(agentConfig)
+	agent, err := agent.NewAgent()
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +21,7 @@ func main() {
 	go agent.Collector.Run(&wg)
 	go agent.Sender.Run(&wg)
 
-	logger.Log("Agent connected to " + agentConfig.DestURL)
+	logger.Log("Agent connected to " + config.Config.ServerURL)
 
 	wg.Wait()
 	fmt.Println("Service stopped")

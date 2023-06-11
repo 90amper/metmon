@@ -17,16 +17,16 @@ type Agent struct {
 	Sender         *sender.Sender
 }
 
-func NewAgent(config config.AgentConfig) (agent *Agent, err error) {
+func NewAgent() (agent *Agent, err error) {
 	var a Agent
-	a.PollInterval, _ = time.ParseDuration(config.PollInterval)
-	a.ReportInterval, _ = time.ParseDuration(config.ReportInterval)
+	a.PollInterval = time.Duration(config.Config.PollInterval) * time.Second
+	a.ReportInterval = time.Duration(config.Config.ReportInterval) * time.Second
 	a.Storage = storage.NewStorage()
-	a.Collector, err = collector.NewCollector(config, a.Storage)
+	a.Collector, err = collector.NewCollector(config.Config, a.Storage)
 	if err != nil {
 		return nil, err
 	}
-	a.Sender, err = sender.NewSender(config, a.Storage)
+	a.Sender, err = sender.NewSender(config.Config, a.Storage)
 	if err != nil {
 		return nil, err
 	}
