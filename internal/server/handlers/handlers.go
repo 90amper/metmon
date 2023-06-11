@@ -2,8 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
+	"os"
 
+	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 	"github.com/90amper/metmon/internal/utils"
 	"github.com/go-chi/chi/v5"
@@ -78,5 +81,48 @@ func (wr *Wrapper) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wr *Wrapper) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("All metrics"))
+	// w.Write([]byte("All metrics"))
+	// templFile, err := os.ReadFile("../internal/server/static/temp/index1.html")
+	templPath, err := os.Getwd()
+	templPath += "\\..\\..\\internal\\server\\static\\temp\\index1.html"
+	fmt.Println(templPath)
+	templFile, err := os.ReadFile(templPath)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	templ, err := template.New("allMetrics").Parse(string(templFile))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	gauges, err := wr.storage.GetCurrentGauges()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	counters, err := wr.storage.GetCounters()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	// test := make(map[string]string)
+	// test["one"] = "ONE"
+	// test["two"] = "TWO"
+	data := struct {
+		Gauges   models.GaugeList
+		Counters models.CounterStore
+	}{
+		Gauges:   gauges,
+		Counters: counters,
+	}
+
+	err = templ.Execute(w, data)
+
 }
