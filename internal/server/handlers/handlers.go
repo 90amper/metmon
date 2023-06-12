@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
@@ -15,17 +14,18 @@ import (
 
 type Wrapper struct {
 	// config  string
-	storage storage.Storager
+	storage  storage.Storager
+	htmlPath string
 }
 
-func NewWrapper(storage storage.Storager) (wr *Wrapper, err error) {
+func NewWrapper(storage storage.Storager, htmlPath string) (wr *Wrapper, err error) {
 	return &Wrapper{
-		storage: storage,
+		storage:  storage,
+		htmlPath: htmlPath,
 	}, nil
 }
 
 func (wr *Wrapper) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
-	// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
 	mType := chi.URLParam(r, "type")
 	mName := chi.URLParam(r, "name")
 	mValue := chi.URLParam(r, "value")
@@ -82,18 +82,7 @@ func (wr *Wrapper) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wr *Wrapper) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
-	// w.Write([]byte("All metrics"))
-	// templFile, err := os.ReadFile("../internal/server/static/temp/index1.html")
-	// err := mime.AddExtensionType(".css", "text/css")
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	w.Write([]byte(err.Error()))
-	// 	return
-	// }
-	templPath, err := os.Getwd()
-	templPath += "\\..\\..\\internal\\server\\html\\index.html"
-	fmt.Println(templPath)
-	templFile, err := os.ReadFile(templPath)
+	templFile, err := os.ReadFile(wr.htmlPath + "\\index.html")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -119,9 +108,6 @@ func (wr *Wrapper) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// test := make(map[string]string)
-	// test["one"] = "ONE"
-	// test["two"] = "TWO"
 	data := struct {
 		Gauges   models.GaugeList
 		Counters models.CounterStore
@@ -131,24 +117,10 @@ func (wr *Wrapper) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = templ.Execute(w, data)
-
-}
-
-func FileServer(r chi.Router, path string, root http.FileSystem) {
-	if strings.ContainsAny(path, "{}*") {
-		panic("FileServer does not permit any URL parameters.")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
 	}
 
-	if path != "/" && path[len(path)-1] != '/' {
-		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
-		path += "/"
-	}
-	path += "*"
-
-	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
-		rctx := chi.RouteContext(r.Context())
-		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
-		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
-		fs.ServeHTTP(w, r)
-	})
 }

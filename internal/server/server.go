@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/90amper/metmon/internal/config"
 	"github.com/90amper/metmon/internal/logger"
@@ -14,25 +14,17 @@ import (
 )
 
 type Server struct {
-	timeout time.Duration
-	deep    int64
-	Storage storage.Storager
-	Router  *chi.Mux
-	Wrapper *handlers.Wrapper
+	Storage  storage.Storager
+	Router   *chi.Mux
+	Wrapper  *handlers.Wrapper
+	HtmlPath string
 }
 
 func (s *Server) NewRouter() *chi.Mux {
-	htmlPath, _ := os.Getwd()
-	htmlPath += "\\..\\..\\internal\\server\\html"
-
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	handlers.FileServer(r, "/html", http.Dir(htmlPath))
+	FileServer(r, "/html", http.Dir(s.HtmlPath))
 	r.Get("/", s.Wrapper.GetAllMetrics)
-	// r.HandleFunc("/style.css", func(w http.ResponseWriter, r *http.Request) {
-	// 	http.ServeFile(w, r, "\\..\\..\\internal\\server\\html\\style.css")
-	// })
-	// r.Handle("/html", http.StripPrefix(rootPath, http.FileServer(http.Dir(rootPath+"\\html"))))
 	r.Route("/value", func(r chi.Router) {
 		r.Route("/{type}", func(r chi.Router) {
 			r.Get("/{name}", s.Wrapper.GetCurrentMetric)
@@ -45,21 +37,42 @@ func (s *Server) NewRouter() *chi.Mux {
 			})
 		})
 	})
-	// r.Get("/value/{type}/{name}", s.Wrapper.GetCurrentMetric)
-	// r.Post("/update/{type}/{name}/{value}", s.Wrapper.ReceiveMetrics)
 	return r
 }
 
 func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 	srv.Storage = storage.NewStorage()
-	srv.Wrapper, err = handlers.NewWrapper(srv.Storage)
 	srv.Router = srv.NewRouter()
-
+	wdPath, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	srv.HtmlPath = wdPath + "\\..\\..\\internal\\server\\html"
+	srv.Wrapper, err = handlers.NewWrapper(srv.Storage, srv.HtmlPath)
 	if err != nil {
 		return nil, err
 	}
 	return srv, nil
+}
+
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", http.StatusMovedPermanently).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }
 
 func Run() (err error) {
@@ -74,53 +87,3 @@ func Run() (err error) {
 	}
 	return nil
 }
-
-// func collectorHandler(w http.ResponseWriter, r *http.Request) {
-// 	// if r.Method == "POST" && r.Header.Get("Content-Type") == "text/plain" {
-// 	fmt.Println(r.Method, r.URL.Path)
-// 	if r.Method == "POST" {
-// 		// http://<АДРЕС_СЕРВЕРА>/update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>
-// 		path := strings.Split(r.URL.Path, "/")
-
-// 		if len(path) < 5 {
-// 			w.WriteHeader(http.StatusNotFound)
-// 			return
-// 		}
-
-// 		if path[2] == "counter" {
-// 			vali, err := strconv.ParseInt(path[4], 10, 64)
-// 			if err != nil {
-// 				w.WriteHeader(http.StatusBadRequest)
-// 				return
-// 			}
-// 			fmt.Printf("%+v\n", vali)
-// 			// MemStor.counter[path[3]] += vali
-// 			// w.Write([]byte(fmt.Sprintf("%+v\r\n", MemStor)))
-// 			return
-// 		} else if path[2] == "gauge" {
-// 			valf, err := strconv.ParseFloat(path[4], 64)
-// 			if err != nil {
-// 				w.WriteHeader(http.StatusBadRequest)
-// 				return
-// 			}
-// 			// MemStor.gauge[path[3]] = valf
-// 			// w.Write([]byte(fmt.Sprintf("%+v\r\n", MemStor)))
-// 			fmt.Printf("%+v\n", valf)
-// 			return
-// 		} else {
-// 			// println(path)
-// 			w.WriteHeader(http.StatusBadRequest)
-// 			return
-// 		}
-// 		// fmt.Printf("%+v\r\n", MemStor)
-
-// 		// test := strings.Join(path, " | ")
-
-// 		// w.WriteHeader(http.StatusInternalServerError)
-// 		// w.Write([]byte("test: " + test))
-// 		// return
-// 	} else {
-// 		w.WriteHeader(http.StatusMethodNotAllowed)
-// 		return
-// 	}
-// }
