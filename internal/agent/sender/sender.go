@@ -86,7 +86,6 @@ func (s *Sender) SendGauges() error {
 			path := namePath + "/" + fmt.Sprintf("%f", value)
 			err := s.Post(path)
 			if err != nil {
-				// return err
 				fmt.Println(err.Error())
 			}
 		}
@@ -109,7 +108,6 @@ func (s *Sender) SendCounters() error {
 		err := s.Post(path)
 		if err != nil {
 			fmt.Println(err.Error())
-			// return err
 		}
 	}
 	return nil

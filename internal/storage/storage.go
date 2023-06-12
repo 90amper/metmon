@@ -16,9 +16,6 @@ type Storager interface {
 	GetCurrentGauge(mName string) (models.Gauge, error)
 	GetCurrentGauges() (models.GaugeList, error)
 	GetCounter(mName string) (models.Counter, error)
-
-	// GetCurrentCounterMetric(mName string) (models.Counter, error)
-	// GetCurrentMetrics() (models.GaugeStore, models.CounterStore, error)
 }
 
 func NewStorage() Storager {

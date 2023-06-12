@@ -11,8 +11,6 @@ type CounterStore map[string]Counter
 
 type GaugeList map[string]Gauge
 
-// type CounterList map[string]Counter
-
 type Config struct {
 	ServerURL      string `env:"ADDRESS"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`

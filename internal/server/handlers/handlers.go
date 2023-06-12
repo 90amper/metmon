@@ -13,7 +13,6 @@ import (
 )
 
 type Handler struct {
-	// config  string
 	storage  storage.Storager
 	htmlPath string
 }
@@ -59,7 +58,6 @@ func (hl *Handler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 func (hl *Handler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	mName := chi.URLParam(r, "name")
-	// logger.Log(mType,mName)
 	switch mType {
 	case "gauge":
 		val, err := hl.storage.GetCurrentGauge(mName)
