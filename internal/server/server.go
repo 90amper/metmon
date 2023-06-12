@@ -14,16 +14,16 @@ import (
 )
 
 type Server struct {
-	Storage  storage.Storager
-	Router   *chi.Mux
-	Handler  *handlers.Handler
-	HtmlPath string
+	Storage storage.Storager
+	Router  *chi.Mux
+	Handler *handlers.Handler
+	FsPath  string
 }
 
 func (s *Server) NewRouter() *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	FileServer(r, "/html", http.Dir(s.HtmlPath))
+	FileServer(r, "/html", http.Dir(s.FsPath))
 	r.Get("/", s.Handler.GetAllMetrics)
 	r.Route("/value", func(r chi.Router) {
 		r.Route("/{type}", func(r chi.Router) {
@@ -47,8 +47,8 @@ func NewServer() (srv *Server, err error) {
 	if err != nil {
 		return nil, err
 	}
-	srv.HtmlPath = wdPath + "\\..\\..\\internal\\server\\html"
-	srv.Handler, err = handlers.NewHandler(srv.Storage, srv.HtmlPath)
+	srv.FsPath = wdPath + "\\..\\..\\internal\\server\\html"
+	srv.Handler, err = handlers.NewHandler(srv.Storage, srv.FsPath)
 	srv.Router = srv.NewRouter()
 	if err != nil {
 		return nil, err

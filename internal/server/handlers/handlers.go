@@ -13,14 +13,14 @@ import (
 )
 
 type Handler struct {
-	storage  storage.Storager
-	htmlPath string
+	storage storage.Storager
+	fsPath  string
 }
 
-func NewHandler(storage storage.Storager, htmlPath string) (hl *Handler, err error) {
+func NewHandler(storage storage.Storager, fsPath string) (hl *Handler, err error) {
 	return &Handler{
-		storage:  storage,
-		htmlPath: htmlPath,
+		storage: storage,
+		fsPath:  fsPath,
 	}, nil
 }
 
@@ -31,6 +31,7 @@ func (hl *Handler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 
 	if mName == "" {
 		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Metric name not specified!"))
 		return
 	}
 
@@ -39,6 +40,7 @@ func (hl *Handler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 		val, err := utils.ParseGauge(mValue)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad gauge value: " + err.Error()))
 			return
 		}
 		hl.storage.AddGauge(mName, val)
@@ -46,11 +48,13 @@ func (hl *Handler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 		val, err := utils.ParseCounter(mValue)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad counter value: " + err.Error()))
 			return
 		}
 		hl.storage.AddCounter(mName, val)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Unknown metric type: " + mType))
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -63,6 +67,7 @@ func (hl *Handler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 		val, err := hl.storage.GetCurrentGauge(mName)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Unknown metric: " + mName))
 			return
 		}
 		w.Write([]byte(fmt.Sprintf("%v", val)))
@@ -70,17 +75,19 @@ func (hl *Handler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 		val, err := hl.storage.GetCounter(mName)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Unknown metric: " + mName))
 			return
 		}
 		w.Write([]byte(fmt.Sprintf("%v", val)))
 	default:
 		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Unknown metric type: " + mType))
 	}
 
 }
 
 func (hl *Handler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
-	templFile, err := os.ReadFile(hl.htmlPath + "\\index.html")
+	templFile, err := os.ReadFile(hl.fsPath + "\\index.html")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
