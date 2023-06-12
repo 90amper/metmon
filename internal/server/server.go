@@ -43,13 +43,13 @@ func (s *Server) NewRouter() *chi.Mux {
 func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 	srv.Storage = storage.NewStorage()
-	srv.Router = srv.NewRouter()
 	wdPath, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 	srv.HtmlPath = wdPath + "\\..\\..\\internal\\server\\html"
 	srv.Handler, err = handlers.NewHandler(srv.Storage, srv.HtmlPath)
+	srv.Router = srv.NewRouter()
 	if err != nil {
 		return nil, err
 	}
