@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/90amper/metmon/internal/config"
@@ -21,9 +22,17 @@ type Server struct {
 }
 
 func (s *Server) NewRouter() *chi.Mux {
+	htmlPath, _ := os.Getwd()
+	htmlPath += "\\..\\..\\internal\\server\\html"
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
+	handlers.FileServer(r, "/html", http.Dir(htmlPath))
 	r.Get("/", s.Wrapper.GetAllMetrics)
+	// r.HandleFunc("/style.css", func(w http.ResponseWriter, r *http.Request) {
+	// 	http.ServeFile(w, r, "\\..\\..\\internal\\server\\html\\style.css")
+	// })
+	// r.Handle("/html", http.StripPrefix(rootPath, http.FileServer(http.Dir(rootPath+"\\html"))))
 	r.Route("/value", func(r chi.Router) {
 		r.Route("/{type}", func(r chi.Router) {
 			r.Get("/{name}", s.Wrapper.GetCurrentMetric)

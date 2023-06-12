@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
@@ -83,8 +84,14 @@ func (wr *Wrapper) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 func (wr *Wrapper) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	// w.Write([]byte("All metrics"))
 	// templFile, err := os.ReadFile("../internal/server/static/temp/index1.html")
+	// err := mime.AddExtensionType(".css", "text/css")
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	w.Write([]byte(err.Error()))
+	// 	return
+	// }
 	templPath, err := os.Getwd()
-	templPath += "\\..\\..\\internal\\server\\static\\temp\\index1.html"
+	templPath += "\\..\\..\\internal\\server\\html\\index.html"
 	fmt.Println(templPath)
 	templFile, err := os.ReadFile(templPath)
 	if err != nil {
@@ -125,4 +132,23 @@ func (wr *Wrapper) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 
 	err = templ.Execute(w, data)
 
+}
+
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }
