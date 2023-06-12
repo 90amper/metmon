@@ -16,7 +16,7 @@ import (
 type Server struct {
 	Storage  storage.Storager
 	Router   *chi.Mux
-	Wrapper  *handlers.Wrapper
+	Handler  *handlers.Handler
 	HtmlPath string
 }
 
@@ -24,16 +24,16 @@ func (s *Server) NewRouter() *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	FileServer(r, "/html", http.Dir(s.HtmlPath))
-	r.Get("/", s.Wrapper.GetAllMetrics)
+	r.Get("/", s.Handler.GetAllMetrics)
 	r.Route("/value", func(r chi.Router) {
 		r.Route("/{type}", func(r chi.Router) {
-			r.Get("/{name}", s.Wrapper.GetCurrentMetric)
+			r.Get("/{name}", s.Handler.GetCurrentMetric)
 		})
 	})
 	r.Route("/update", func(r chi.Router) {
 		r.Route("/{type}", func(r chi.Router) {
 			r.Route("/{name}", func(r chi.Router) {
-				r.Post("/{value}", s.Wrapper.ReceiveMetrics)
+				r.Post("/{value}", s.Handler.ReceiveMetrics)
 			})
 		})
 	})
@@ -49,7 +49,7 @@ func NewServer() (srv *Server, err error) {
 		return nil, err
 	}
 	srv.HtmlPath = wdPath + "\\..\\..\\internal\\server\\html"
-	srv.Wrapper, err = handlers.NewWrapper(srv.Storage, srv.HtmlPath)
+	srv.Handler, err = handlers.NewHandler(srv.Storage, srv.HtmlPath)
 	if err != nil {
 		return nil, err
 	}

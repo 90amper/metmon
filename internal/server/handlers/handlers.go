@@ -12,20 +12,20 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type Wrapper struct {
+type Handler struct {
 	// config  string
 	storage  storage.Storager
 	htmlPath string
 }
 
-func NewWrapper(storage storage.Storager, htmlPath string) (wr *Wrapper, err error) {
-	return &Wrapper{
+func NewHandler(storage storage.Storager, htmlPath string) (hl *Handler, err error) {
+	return &Handler{
 		storage:  storage,
 		htmlPath: htmlPath,
 	}, nil
 }
 
-func (wr *Wrapper) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
+func (hl *Handler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	mName := chi.URLParam(r, "name")
 	mValue := chi.URLParam(r, "value")
@@ -42,34 +42,34 @@ func (wr *Wrapper) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		wr.storage.AddGauge(mName, val)
+		hl.storage.AddGauge(mName, val)
 	case "counter":
 		val, err := utils.ParseCounter(mValue)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		wr.storage.AddCounter(mName, val)
+		hl.storage.AddCounter(mName, val)
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 	}
 	w.WriteHeader(http.StatusOK)
 }
 
-func (wr *Wrapper) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
+func (hl *Handler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	mName := chi.URLParam(r, "name")
 	// logger.Log(mType,mName)
 	switch mType {
 	case "gauge":
-		val, err := wr.storage.GetCurrentGauge(mName)
+		val, err := hl.storage.GetCurrentGauge(mName)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		w.Write([]byte(fmt.Sprintf("%v", val)))
 	case "counter":
-		val, err := wr.storage.GetCounter(mName)
+		val, err := hl.storage.GetCounter(mName)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -81,8 +81,8 @@ func (wr *Wrapper) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (wr *Wrapper) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
-	templFile, err := os.ReadFile(wr.htmlPath + "\\index.html")
+func (hl *Handler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
+	templFile, err := os.ReadFile(hl.htmlPath + "\\index.html")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -95,13 +95,13 @@ func (wr *Wrapper) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gauges, err := wr.storage.GetCurrentGauges()
+	gauges, err := hl.storage.GetCurrentGauges()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
-	counters, err := wr.storage.GetCounters()
+	counters, err := hl.storage.GetCounters()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
