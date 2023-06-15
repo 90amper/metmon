@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<link rel="stylesheet" href="html/styles.css">
+
+<head>
+    <!-- <meta http-equiv="refresh" content="10"> -->
+</head>
+
+<body>
+    <h1 style="color: #5e9ca0;">Current Metrics</h1>
+    <table>
+    <tr style="vertical-align: top;">
+        <td>
+            <h2>Gauges</h2>
+
+            <table class="steelBlueCols">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ range $key, $value := .Gauges }}<tr>
+                        <td>{{$key}}</td>
+                        <td>{{$value}}</td>
+                    </tr>{{ end }}
+                </tbody>
+    </tr>
+    </table>
+    </td>
+    <td>
+        <h2>Counters</h2>
+        <table class="steelBlueCols">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range $key, $value := .Counters }}<tr>
+                    <td>{{$key}}</td>
+                    <td>{{$value}}</td>
+                </tr>{{ end }}
+            </tbody>
+            </tr>
+        </table>
+    </td>
+    </tr>
+</table>
+</body>
+
+</html>
