@@ -10,7 +10,9 @@ import (
 	"github.com/90amper/metmon/internal/server/handlers"
 	"github.com/90amper/metmon/internal/storage"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+
+	mdw "github.com/90amper/metmon/internal/middleware"
+	// "go.uber.org/zap"
 )
 
 type Server struct {
@@ -22,7 +24,8 @@ type Server struct {
 
 func (s *Server) NewRouter() *chi.Mux {
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	// r.Use(middleware.Logger)
+	r.Use(mdw.Logger)
 	FileServer(r, "/html", http.Dir(s.FsPath))
 	r.Get("/", s.Handler.GetAllMetrics)
 	r.Route("/value", func(r chi.Router) {
