@@ -30,6 +30,7 @@ func (hl *MMHandler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	mType := req.MType
 	mName := req.ID
 	mValue := req.Value
