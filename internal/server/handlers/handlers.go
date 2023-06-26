@@ -9,6 +9,7 @@ import (
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
+	"github.com/90amper/metmon/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -25,6 +26,41 @@ func NewHandler(storage storage.Storager, fsPath string) (hl *MMHandler, err err
 }
 
 func (hl *MMHandler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
+	mType := chi.URLParam(r, "type")
+	mName := chi.URLParam(r, "name")
+	mValue := chi.URLParam(r, "value")
+
+	if mName == "" {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Metric name not specified!"))
+		return
+	}
+
+	switch mType {
+	case "gauge":
+		val, err := utils.ParseGauge(mValue)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad gauge value: " + err.Error()))
+			return
+		}
+		hl.storage.AddGauge(mName, val)
+	case "counter":
+		val, err := utils.ParseCounter(mValue)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Bad counter value: " + err.Error()))
+			return
+		}
+		hl.storage.AddCounter(mName, val)
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Unknown metric type: " + mType))
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (hl *MMHandler) ReceiveJsonMetrics(w http.ResponseWriter, r *http.Request) {
 	var req models.Metric
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
