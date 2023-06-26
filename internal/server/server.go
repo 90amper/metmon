@@ -18,7 +18,7 @@ import (
 type Server struct {
 	Storage storage.Storager
 	Router  *chi.Mux
-	Handler *handlers.Handler
+	Handler *handlers.MMHandler
 	FsPath  string
 }
 

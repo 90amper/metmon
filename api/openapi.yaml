@@ -1,0 +1,52 @@
+openapi: '3.0.2'
+info:
+  title: Metrics Monitoring API
+  version: '1.0'
+servers:
+  - url: http://localhost:8081/
+paths:
+  /update:
+    post:
+      operationId: UpdateMetricValue
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metric'
+  /value:
+    post:
+      operationId: GetMetricValue
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metric'
+components:
+  schemas:
+    Metric:
+      type: object
+      required:
+        - "ID"
+        - "MType"
+      properties:
+        id:
+          x-go-name: "ID"
+          type: string
+        type:
+          type: string
+          x-go-name: "MType"
+        delta:
+          type: integer
+          format: int64
+          x-go-name: "Delta"
+        value:
+          type: number
+          format: double
+          x-go-name: "Value"
+

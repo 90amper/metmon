@@ -12,19 +12,19 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type Handler struct {
+type MMHandler struct {
 	storage storage.Storager
 	fsPath  string
 }
 
-func NewHandler(storage storage.Storager, fsPath string) (hl *Handler, err error) {
-	return &Handler{
+func NewHandler(storage storage.Storager, fsPath string) (hl *MMHandler, err error) {
+	return &MMHandler{
 		storage: storage,
 		fsPath:  fsPath,
 	}, nil
 }
 
-func (hl *Handler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
+func (hl *MMHandler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	mName := chi.URLParam(r, "name")
 	mValue := chi.URLParam(r, "value")
@@ -59,7 +59,7 @@ func (hl *Handler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (hl *Handler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
+func (hl *MMHandler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 	mType := chi.URLParam(r, "type")
 	mName := chi.URLParam(r, "name")
 	switch mType {
@@ -86,7 +86,7 @@ func (hl *Handler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (hl *Handler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
+func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	templFile, err := os.ReadFile(hl.fsPath + "\\index.html")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
