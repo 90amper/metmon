@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
-	"github.com/90amper/metmon/internal/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -25,37 +25,47 @@ func NewHandler(storage storage.Storager, fsPath string) (hl *MMHandler, err err
 }
 
 func (hl *MMHandler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
-	mType := chi.URLParam(r, "type")
-	mName := chi.URLParam(r, "name")
-	mValue := chi.URLParam(r, "value")
+	var req models.Metric
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	mType := req.MType
+	mName := req.ID
+	mValue := req.Value
+	mDelta := req.Delta
 
 	if mName == "" {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Metric name not specified!"))
 		return
 	}
-
+	resp := models.Metric{
+		ID:    mName,
+		MType: mType,
+	}
 	switch mType {
 	case "gauge":
-		val, err := utils.ParseGauge(mValue)
+		hl.storage.AddGauge(mName, models.Gauge(*mValue))
+		curVal, err := hl.storage.GetCurrentGauge(mName)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Bad gauge value: " + err.Error()))
-			return
+			w.WriteHeader(http.StatusInternalServerError)
 		}
-		hl.storage.AddGauge(mName, val)
+		val := float64(curVal)
+		resp.Value = &val
 	case "counter":
-		val, err := utils.ParseCounter(mValue)
+		hl.storage.AddCounter(mName, models.Counter(*mDelta))
+		curVal, err := hl.storage.GetCounter(mName)
 		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("Bad counter value: " + err.Error()))
-			return
+			w.WriteHeader(http.StatusInternalServerError)
 		}
-		hl.storage.AddCounter(mName, val)
+		val := int64(curVal)
+		resp.Delta = &val
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unknown metric type: " + mType))
 	}
+	json.NewEncoder(w).Encode(resp)
 	w.WriteHeader(http.StatusOK)
 }
 

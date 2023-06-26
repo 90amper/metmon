@@ -28,18 +28,8 @@ func (s *Server) NewRouter() *chi.Mux {
 	r.Use(mdw.Logger)
 	FileServer(r, "/html", http.Dir(s.FsPath))
 	r.Get("/", s.Handler.GetAllMetrics)
-	r.Route("/value", func(r chi.Router) {
-		r.Route("/{type}", func(r chi.Router) {
-			r.Get("/{name}", s.Handler.GetCurrentMetric)
-		})
-	})
-	r.Route("/update", func(r chi.Router) {
-		r.Route("/{type}", func(r chi.Router) {
-			r.Route("/{name}", func(r chi.Router) {
-				r.Post("/{value}", s.Handler.ReceiveMetrics)
-			})
-		})
-	})
+	r.Post("/value", s.Handler.GetCurrentMetric)
+	r.Post("/update", s.Handler.ReceiveMetrics)
 	return r
 }
 

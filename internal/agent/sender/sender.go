@@ -1,6 +1,8 @@
 package sender
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -27,13 +29,15 @@ func NewSender(config models.Config, storage storage.Storager) (*Sender, error) 
 	}, nil
 }
 
-func (s *Sender) Post(path string) error {
+func (s *Sender) Post(path string, body interface{}) error {
 	fmt.Println(path)
-	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, nil)
+	buf := new(bytes.Buffer)
+	json.NewEncoder(buf).Encode(body)
+	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, buf)
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "text/plain")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -72,7 +76,7 @@ func (s *Sender) SendStore() (err error) {
 }
 
 func (s *Sender) SendGauges() error {
-	basePath := "update/gauge"
+	basePath := "update"
 	gauges, err := s.storage.GetGauges()
 	if err != nil {
 		return err
@@ -81,10 +85,15 @@ func (s *Sender) SendGauges() error {
 		return nil
 	}
 	for name, values := range gauges {
-		namePath := basePath + "/" + name
+		// namePath := basePath + "/" + name
 		for _, value := range values {
-			path := namePath + "/" + fmt.Sprintf("%f", value)
-			err := s.Post(path)
+			val := float64(value)
+			metr := models.Metric{
+				ID:    name,
+				MType: "gauge",
+				Value: &val,
+			}
+			err := s.Post(basePath, metr)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -94,7 +103,7 @@ func (s *Sender) SendGauges() error {
 }
 
 func (s *Sender) SendCounters() error {
-	basePath := "update/counter"
+	basePath := "update"
 	counters, err := s.storage.GetCounters()
 	if err != nil {
 		return err
@@ -103,9 +112,13 @@ func (s *Sender) SendCounters() error {
 		return nil
 	}
 	for name, value := range counters {
-		namePath := basePath + "/" + name
-		path := namePath + "/" + fmt.Sprintf("%d", value)
-		err := s.Post(path)
+		val := int64(value)
+		metr := models.Metric{
+			ID:    name,
+			MType: "counter",
+			Delta: &val,
+		}
+		err := s.Post(basePath, metr)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
