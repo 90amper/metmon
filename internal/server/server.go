@@ -29,7 +29,7 @@ func (s *Server) NewRouter() *chi.Mux {
 	FileServer(r, "/html", http.Dir(s.FsPath))
 	r.Get("/", s.Handler.GetAllMetrics)
 	r.Route("/value", func(r chi.Router) {
-		r.Post("/", s.Handler.GetCurrentMetric)
+		r.Post("/", s.Handler.GetCurrentJsonMetric)
 		r.Route("/{type}", func(r chi.Router) {
 			r.Get("/{name}", s.Handler.GetCurrentMetric)
 		})
