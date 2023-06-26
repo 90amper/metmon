@@ -103,7 +103,7 @@ func (hl *MMHandler) ReceiveJsonMetrics(w http.ResponseWriter, r *http.Request) 
 		w.Write([]byte("Unknown metric type: " + mType))
 	}
 	json.NewEncoder(w).Encode(resp)
-	w.Header().Add("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -165,7 +165,9 @@ func (hl *MMHandler) GetCurrentJsonMetric(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unknown metric type: " + mType))
 	}
-
+	json.NewEncoder(w).Encode(resp)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
