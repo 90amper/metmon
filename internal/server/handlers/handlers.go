@@ -56,6 +56,7 @@ func (hl *MMHandler) ReceiveMetrics(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unknown metric type: " + mType))
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -83,24 +84,35 @@ func (hl *MMHandler) ReceiveJsonMetrics(w http.ResponseWriter, r *http.Request) 
 	}
 	switch mType {
 	case "gauge":
+		if mValue == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		hl.storage.AddGauge(mName, models.Gauge(*mValue))
 		curVal, err := hl.storage.GetCurrentGauge(mName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		val := float64(curVal)
 		resp.Value = &val
 	case "counter":
+		if mDelta == nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 		hl.storage.AddCounter(mName, models.Counter(*mDelta))
 		curVal, err := hl.storage.GetCounter(mName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		val := int64(curVal)
 		resp.Delta = &val
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unknown metric type: " + mType))
+		return
 	}
 	json.NewEncoder(w).Encode(resp)
 	w.Header().Set("Content-Type", "application/json")
@@ -130,8 +142,8 @@ func (hl *MMHandler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unknown metric type: " + mType))
+		return
 	}
-
 }
 
 func (hl *MMHandler) GetCurrentJsonMetric(w http.ResponseWriter, r *http.Request) {
@@ -151,6 +163,7 @@ func (hl *MMHandler) GetCurrentJsonMetric(w http.ResponseWriter, r *http.Request
 		curVal, err := hl.storage.GetCurrentGauge(mName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		val := float64(curVal)
 		resp.Value = &val
@@ -158,12 +171,14 @@ func (hl *MMHandler) GetCurrentJsonMetric(w http.ResponseWriter, r *http.Request
 		curVal, err := hl.storage.GetCounter(mName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		val := int64(curVal)
 		resp.Delta = &val
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unknown metric type: " + mType))
+		return
 	}
 	json.NewEncoder(w).Encode(resp)
 	w.Header().Set("Content-Type", "application/json")
@@ -211,5 +226,4 @@ func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		return
 	}
-
 }
