@@ -1,7 +1,11 @@
 package middleware
 
 import (
+	"bytes"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/90amper/metmon/internal/logger"
@@ -48,17 +52,24 @@ func Logger(h http.Handler) http.Handler {
 			ResponseWriter: w, // встраиваем оригинальный http.ResponseWriter
 			responseData:   responseData,
 		}
-		h.ServeHTTP(&lw, r) // внедряем реализацию http.ResponseWriter
 
 		duration := time.Since(start)
+		buf, _ := ioutil.ReadAll(r.Body)
 
 		sugar.Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
+			// "body", spew.Sprintf("%#v", buf),
+			"body", fmt.Sprint(strings.ReplaceAll(string(buf), "\"", "")),
 			"status", responseData.status, // получаем перехваченный код статуса ответа
 			"duration", duration,
 			"size", responseData.size, // получаем перехваченный размер ответа
 		)
+
+		reader := ioutil.NopCloser(bytes.NewBuffer(buf))
+		r.Body = reader
+
+		h.ServeHTTP(&lw, r) // внедряем реализацию http.ResponseWriter
 	}
 	return http.HandlerFunc(logFn)
 }
