@@ -14,7 +14,10 @@ func Log(args ...interface{}) {
 
 func NewDebugLogger() zap.SugaredLogger {
 	// создаём предустановленный регистратор zap
-	lgr, err := zap.NewDevelopment()
+	config := zap.NewProductionConfig()
+	config.OutputPaths = []string{"stdout"}
+	lgr, err := config.Build()
+	// lgr, err := zap.NewProduction()
 	if err != nil {
 		// вызываем панику, если ошибка
 		panic(err)
