@@ -56,6 +56,11 @@ func Logger(h http.Handler) http.Handler {
 		duration := time.Since(start)
 		buf, _ := ioutil.ReadAll(r.Body)
 
+		reader := ioutil.NopCloser(bytes.NewBuffer(buf))
+		r.Body = reader
+
+		h.ServeHTTP(&lw, r) // внедряем реализацию http.ResponseWriter
+
 		sugar.Infoln(
 			"uri", r.RequestURI,
 			"method", r.Method,
@@ -65,11 +70,6 @@ func Logger(h http.Handler) http.Handler {
 			"duration", duration,
 			"size", responseData.size, // получаем перехваченный размер ответа
 		)
-
-		reader := ioutil.NopCloser(bytes.NewBuffer(buf))
-		r.Body = reader
-
-		h.ServeHTTP(&lw, r) // внедряем реализацию http.ResponseWriter
 	}
 	return http.HandlerFunc(logFn)
 }
