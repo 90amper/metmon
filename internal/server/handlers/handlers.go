@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 	"github.com/90amper/metmon/internal/utils"
@@ -90,12 +91,14 @@ func (hl *MMHandler) GetCurrentMetric(w http.ResponseWriter, r *http.Request) {
 func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	templFile, err := os.ReadFile(hl.fsPath + "\\index.html")
 	if err != nil {
+		logger.Log(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 	templ, err := template.New("allMetrics").Parse(string(templFile))
 	if err != nil {
+		logger.Log(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
@@ -103,12 +106,14 @@ func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 
 	gauges, err := hl.storage.GetCurrentGauges()
 	if err != nil {
+		logger.Log(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 	counters, err := hl.storage.GetCounters()
 	if err != nil {
+		logger.Log(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
@@ -124,6 +129,7 @@ func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 
 	err = templ.Execute(w, data)
 	if err != nil {
+		logger.Log(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return

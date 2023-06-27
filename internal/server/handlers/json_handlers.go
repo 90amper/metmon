@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/models"
 )
 
@@ -37,6 +38,7 @@ func (hl *MMHandler) ReceiveJSONMetrics(w http.ResponseWriter, r *http.Request) 
 		hl.storage.AddGauge(mName, models.Gauge(*mValue))
 		curVal, err := hl.storage.GetCurrentGauge(mName)
 		if err != nil {
+			logger.Log(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -50,6 +52,7 @@ func (hl *MMHandler) ReceiveJSONMetrics(w http.ResponseWriter, r *http.Request) 
 		hl.storage.AddCounter(mName, models.Counter(*mDelta))
 		curVal, err := hl.storage.GetCounter(mName)
 		if err != nil {
+			logger.Log(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
