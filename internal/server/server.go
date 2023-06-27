@@ -36,6 +36,7 @@ func (s *Server) NewRouter() *chi.Mux {
 		AllowCredentials: false,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
+	r.Use(mdw.GzipHandle)
 	// r.Use(middleware.Logger)
 	r.Use(mdw.Logger)
 	FileServer(r, "/html", http.Dir(s.FsPath))

@@ -7,10 +7,21 @@ servers:
 paths:
   /update:
     post:
+      parameters:
+        - in: header
+          name: Accept-Encoding
+          schema:
+            type: string
+            default: 'gzip'
       operationId: UpdateMetricValue
       responses:
         '200':
           description: OK
+          headers:
+            Accept-Encoding:
+              schema:
+                type: string
+                default: 'gzip'
       requestBody:
         content:
           application/json:
@@ -18,10 +29,25 @@ paths:
               $ref: '#/components/schemas/Metric'
   /value:
     post:
+      parameters:
+        - in: header
+          name: Accept-Encoding
+          schema:
+            type: string
+            default: 'gzip'
       operationId: GetMetricValue
       responses:
         '200':
           description: OK
+          headers:
+            Accept-Encoding:
+              schema:
+                type: string
+                default: 'gzip'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metric'
       requestBody:
         content:
           application/json:

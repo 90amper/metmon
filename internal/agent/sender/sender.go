@@ -2,14 +2,17 @@ package sender
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type Sender struct {
@@ -30,14 +33,27 @@ func NewSender(config models.Config, storage storage.Storager) (*Sender, error) 
 }
 
 func (s *Sender) Post(path string, body interface{}) error {
-	fmt.Println(path)
+	// fmt.Printf("%+v\n", body)
+	// spew.Dump(body)
+	spew.Printf("%#v\n", body)
+
 	buf := new(bytes.Buffer)
+
+	// создаём gzip.Writer поверх текущего w
+	gz, err := gzip.NewWriterLevel(buf, gzip.BestSpeed)
+	if err != nil {
+		io.WriteString(buf, err.Error())
+		return err
+	}
+	defer gz.Close()
+
 	json.NewEncoder(buf).Encode(body)
 	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, buf)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
