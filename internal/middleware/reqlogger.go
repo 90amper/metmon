@@ -3,7 +3,7 @@ package middleware
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -54,9 +54,9 @@ func Logger(h http.Handler) http.Handler {
 		}
 
 		duration := time.Since(start)
-		buf, _ := ioutil.ReadAll(r.Body)
+		buf, _ := io.ReadAll(r.Body)
 
-		reader := ioutil.NopCloser(bytes.NewBuffer(buf))
+		reader := io.NopCloser(bytes.NewBuffer(buf))
 		r.Body = reader
 
 		h.ServeHTTP(&lw, r) // внедряем реализацию http.ResponseWriter
