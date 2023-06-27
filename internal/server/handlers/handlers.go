@@ -92,9 +92,13 @@ func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 	templFile, err := os.ReadFile(hl.fsPath + "\\index.html")
 	if err != nil {
 		logger.Log(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
+		templFile, err = os.ReadFile(hl.fsPath + "/index.html")
+		if err != nil {
+			logger.Log(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
 	}
 	templ, err := template.New("allMetrics").Parse(string(templFile))
 	if err != nil {

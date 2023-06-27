@@ -10,6 +10,7 @@ func Log(args ...interface{}) {
 	for _, val := range args {
 		fmt.Printf("%+v\t", val)
 	}
+	fmt.Println()
 }
 
 func NewDebugLogger() zap.SugaredLogger {
