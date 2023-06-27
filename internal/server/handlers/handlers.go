@@ -162,7 +162,7 @@ func (hl *MMHandler) GetCurrentJsonMetric(w http.ResponseWriter, r *http.Request
 	case "gauge":
 		curVal, err := hl.storage.GetCurrentGauge(mName)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		val := float64(curVal)
@@ -170,7 +170,7 @@ func (hl *MMHandler) GetCurrentJsonMetric(w http.ResponseWriter, r *http.Request
 	case "counter":
 		curVal, err := hl.storage.GetCounter(mName)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		val := int64(curVal)
