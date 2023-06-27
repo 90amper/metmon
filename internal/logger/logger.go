@@ -8,7 +8,7 @@ import (
 
 func Log(args ...interface{}) {
 	for _, val := range args {
-		fmt.Printf("%+v\n", val)
+		fmt.Printf("%+v\t", val)
 	}
 }
 

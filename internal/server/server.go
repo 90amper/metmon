@@ -64,23 +64,28 @@ func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 	srv.Storage = storage.NewStorage()
 	wdPath, _ := os.Getwd()
-	files, err := os.ReadDir(wdPath)
-	if err != nil {
-		logger.Log(err.Error())
-	}
+
+	files, _ := os.ReadDir(wdPath)
+	// if err != nil {
+	// 	logger.Log(err.Error())
+	// }
 	for _, file := range files {
 		logger.Log(file.Name(), file.IsDir())
 	}
-	if err != nil {
-		logger.Log(err.Error())
-	}
+
 	logger.Log(wdPath)
 	srv.FsPath = wdPath + "\\..\\..\\internal\\server\\html"
 	if _, err := os.Stat(srv.FsPath + "\\index.html"); err != nil {
 		logger.Log("index.html not found, changing path")
 		srv.FsPath = wdPath + "/internal/server/html"
 	}
+
+	files, _ = os.ReadDir(srv.FsPath)
+	for _, file := range files {
+		logger.Log(file.Name(), file.IsDir())
+	}
 	// srv.FsPath = "./html"
+
 	srv.Handler, err = handlers.NewHandler(srv.Storage, srv.FsPath)
 	srv.Router = srv.NewRouter()
 	if err != nil {
@@ -90,6 +95,22 @@ func NewServer() (srv *Server, err error) {
 }
 
 func FileServer(r chi.Router, path string, root http.FileSystem) {
+	// if strings.ContainsAny(path, "{}*") {
+	// 	panic("FileServer does not permit any URL parameters.")
+	// }
+
+	// if path != "/" && path[len(path)-1] != '/' {
+	// 	r.Get(path, http.RedirectHandler(path+"/", http.StatusMovedPermanently).ServeHTTP)
+	// 	path += "/"
+	// }
+	// path += "*"
+
+	// r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+	// 	rctx := chi.RouteContext(r.Context())
+	// 	pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+	// 	fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+	// 	fs.ServeHTTP(w, r)
+	// })
 	if strings.ContainsAny(path, "{}*") {
 		panic("FileServer does not permit any URL parameters.")
 	}
