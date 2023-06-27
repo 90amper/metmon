@@ -63,9 +63,16 @@ func (s *Server) NewRouter() *chi.Mux {
 func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 	srv.Storage = storage.NewStorage()
-	wdPath, err := os.Getwd()
+	wdPath, _ := os.Getwd()
+	files, err := os.ReadDir(wdPath)
 	if err != nil {
-		return nil, err
+		logger.Log(err.Error())
+	}
+	for _, file := range files {
+		logger.Log(file.Name(), file.IsDir())
+	}
+	if err != nil {
+		logger.Log(err.Error())
 	}
 	logger.Log(wdPath)
 	srv.FsPath = wdPath + "\\..\\..\\internal\\server\\html"
