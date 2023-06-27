@@ -3,7 +3,7 @@ info:
   title: Metrics Monitoring API
   version: '1.0'
 servers:
-  - url: http://localhost:8080/
+  - url: http://localhost:8080
 paths:
   /update:
     post:
