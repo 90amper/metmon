@@ -78,7 +78,7 @@ func NewServer() (srv *Server, err error) {
 	srv.FsPath = wdPath + "\\..\\..\\internal\\server\\html"
 	if _, err := os.Stat(srv.FsPath + "\\index.html"); err != nil {
 		logger.Log("index.html not found, changing path")
-		srv.FsPath = wdPath + "\\..\\internal\\server\\html"
+		srv.FsPath = wdPath + "\\internal\\server\\html"
 	}
 	// srv.FsPath = "./html"
 	srv.Handler, err = handlers.NewHandler(srv.Storage, srv.FsPath)
