@@ -128,9 +128,6 @@ func Run() (err error) {
 			logger.Log(err.Error())
 		}
 	}
-	if config.Config.FileStoragePath != "" {
-		go srv.Storage.Dumper()
-	}
 
 	fmt.Printf("%v Starting server at %v\n", time.Now().Format(time.RFC3339), config.Config.ServerURL)
 	go func() {
@@ -140,6 +137,10 @@ func Run() (err error) {
 			panic(err.Error())
 		}
 	}()
+
+	if config.Config.FileStoragePath != "" {
+		go srv.Storage.Dumper()
+	}
 
 	<-shutdown
 	// cancelFn()
