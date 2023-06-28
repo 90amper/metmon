@@ -118,12 +118,12 @@ func (s *MemStorage) LoadFromFile() error {
 	store := &MemStorage{}
 	file, err := os.ReadFile(s.cfg.FileStoragePath)
 	if err != nil {
-		logger.Log(err.Error())
+		// logger.Log(err.Error())
 		return err
 	}
 	err = json.Unmarshal(file, store)
 	if err != nil {
-		logger.Log(err.Error())
+		// logger.Log(err.Error())
 		return err
 	}
 	s.Counters = store.Counters

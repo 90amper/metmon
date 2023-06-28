@@ -28,7 +28,7 @@ func init() {
 	Config.ProjPath = wdPath
 	pflag.StringVarP(&Config.ServerURL, "address", "a", "localhost:8080", "server URL")
 	pflag.IntVarP(&Config.StoreInterval, "storeint", "i", 300, "metrics store interval")
-	pflag.BoolVarP(&Config.Restore, "restore", "r", true, "restore metrics after startup")
+	pflag.BoolVarP(&Config.Restore, "restore", "r", false, "restore metrics after startup")
 	pflag.Parse()
 
 	env.Parse(&Config)
