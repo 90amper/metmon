@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/90amper/metmon/internal/agent"
 	"github.com/90amper/metmon/internal/agent/config"
-	"github.com/90amper/metmon/internal/logger"
 )
 
 func main() {
@@ -20,9 +20,8 @@ func main() {
 
 	go agent.Collector.Run(&wg)
 	go agent.Sender.Run(&wg)
-
-	logger.Log("Agent connected to " + config.Config.ServerURL)
+	fmt.Printf("%v Starting agent, connecting to %v\n", time.Now().Format(time.RFC3339), config.Config.ServerURL)
 
 	wg.Wait()
-	fmt.Println("Service stopped")
+	fmt.Printf("%v Agent stopped\n", time.Now().Format(time.RFC3339))
 }
