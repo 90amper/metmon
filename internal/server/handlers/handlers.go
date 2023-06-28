@@ -131,6 +131,7 @@ func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		Counters: counters,
 	}
 
+	w.Header().Set("Content-Type", "text/html")
 	err = templ.Execute(w, data)
 	if err != nil {
 		logger.Log(err.Error())

@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -32,28 +31,66 @@ func NewSender(config models.Config, storage storage.Storager) (*Sender, error) 
 	}, nil
 }
 
+// Compress сжимает слайс байт.
+func Compress(data []byte) ([]byte, error) {
+	var b bytes.Buffer
+	// создаём переменную w — в неё будут записываться входящие данные,
+	// которые будут сжиматься и сохраняться в bytes.Buffer
+	w := gzip.NewWriter(&b)
+	// запись данных
+	_, err := w.Write(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
+	}
+	// обязательно нужно вызвать метод Close() — в противном случае часть данных
+	// может не записаться в буфер b; если нужно выгрузить все упакованные данные
+	// в какой-то момент сжатия, используйте метод Flush()
+	err = w.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed compress data: %v", err)
+	}
+	// переменная b содержит сжатые данные
+	return b.Bytes(), nil
+}
+
+// func Compressor(req *http.Request) {
+//     var b []byte
+// 	req.Body.Read(b)
+//     var buf bytes.Buffer
+//     g := gzip.NewWriter(&buf)
+
+//     _, err := io.Copy(g, &b)
+//     if err != nil {
+//         logger.Log(err.Error())
+//         return
+//     }
+// }
+
 func (s *Sender) Post(path string, body interface{}) error {
-	// fmt.Printf("%+v\n", body)
-	// spew.Dump(body)
+	// fmt.Println(path)
 	spew.Printf("%#v\n", body)
+	// json, err := json.Marshal(body)
+	// if err != nil {
+	// 	logger.Log(err.Error())
+	// }
+	// gzjson, err := Compress(json)
+	// if err != nil {
+	// 	logger.Log(err.Error())
+	// }
 
-	buf := new(bytes.Buffer)
+	var jbuf, gbuf bytes.Buffer
+	json.NewEncoder(&jbuf).Encode(body)
 
-	// создаём gzip.Writer поверх текущего w
-	gz, err := gzip.NewWriterLevel(buf, gzip.BestSpeed)
+	gz := gzip.NewWriter(&gbuf)
+	gz.Write(jbuf.Bytes())
+	gz.Close()
+
+	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, &gbuf)
 	if err != nil {
-		io.WriteString(buf, err.Error())
 		return err
 	}
-	defer gz.Close()
-
-	json.NewEncoder(buf).Encode(body)
-	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, buf)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
