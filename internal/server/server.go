@@ -103,12 +103,12 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 
 func Run() (err error) {
 	var signals = []os.Signal{
-		os.Interrupt,
+		// os.Interrupt,
 		syscall.SIGINT,
 		syscall.SIGQUIT,
-		syscall.SIGABRT,
-		syscall.SIGKILL,
-		syscall.SIGTERM,
+		// syscall.SIGABRT,
+		// syscall.SIGKILL,
+		// syscall.SIGTERM,
 		// syscall.SIGSTOP,
 	}
 
