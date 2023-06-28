@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/90amper/metmon/internal/agent/collector"
+	"github.com/90amper/metmon/internal/agent/config"
 	"github.com/90amper/metmon/internal/agent/sender"
-	"github.com/90amper/metmon/internal/config"
 	"github.com/90amper/metmon/internal/storage"
 )
 
@@ -21,7 +21,7 @@ func NewAgent() (agent *Agent, err error) {
 	var a Agent
 	a.PollInterval = time.Duration(config.Config.PollInterval) * time.Second
 	a.ReportInterval = time.Duration(config.Config.ReportInterval) * time.Second
-	a.Storage = storage.NewStorage()
+	a.Storage = storage.NewStorage(&config.Config)
 	a.Collector, err = collector.NewCollector(config.Config, a.Storage)
 	if err != nil {
 		return nil, err

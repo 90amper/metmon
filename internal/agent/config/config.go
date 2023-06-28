@@ -13,7 +13,5 @@ func init() {
 	pflag.IntVarP(&Config.ReportInterval, "report", "r", 10, "metrics report interval")
 	pflag.IntVarP(&Config.PollInterval, "poll", "p", 2, "metrics poll interval")
 
-	pflag.Parse()
-
 	env.Parse(&Config)
 }

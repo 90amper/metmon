@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/90amper/metmon/internal/agent"
-	"github.com/90amper/metmon/internal/config"
+	"github.com/90amper/metmon/internal/agent/config"
 	"github.com/90amper/metmon/internal/logger"
 )
 

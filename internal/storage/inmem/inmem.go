@@ -1,18 +1,24 @@
 package inmem
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"time"
 
+	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/models"
 )
 
 type MemStorage struct {
-	Gauges   models.GaugeStore
-	Counters models.CounterStore
+	models.Store
+	cfg *models.Config
 }
 
-func NewInMem() *MemStorage {
-	return &MemStorage{}
+func NewInMem(cfg *models.Config) *MemStorage {
+	return &MemStorage{
+		cfg: cfg,
+	}
 }
 
 func (s *MemStorage) AddGauge(name string, value models.Gauge) error {
@@ -92,4 +98,56 @@ func (s *MemStorage) GetCurrentGauges() (models.GaugeList, error) {
 		list[mName] = mVal[len(mVal)-1]
 	}
 	return list, nil
+}
+
+func (s *MemStorage) SaveToFile() error {
+	json, err := json.Marshal(s)
+	if err != nil {
+		logger.Log(err.Error())
+	}
+	err = os.WriteFile(s.cfg.FileStoragePath, json, 0666)
+	if err != nil {
+		logger.Log(err.Error())
+	}
+
+	// file := OpenFile(s.filePath, syscall.O_WRONLY, perm FileMode) (*File, error)
+	return nil
+}
+func (s *MemStorage) LoadFromFile() error {
+	fmt.Printf("Loading storage from file... ")
+	store := &MemStorage{}
+	file, err := os.ReadFile(s.cfg.FileStoragePath)
+	if err != nil {
+		logger.Log(err.Error())
+		return err
+	}
+	err = json.Unmarshal(file, store)
+	if err != nil {
+		logger.Log(err.Error())
+		return err
+	}
+	s.Counters = store.Counters
+	s.Gauges = store.Gauges
+	fmt.Printf("done: %v gauges, %v counters\n", len(store.Gauges), len(store.Counters))
+	return nil
+}
+
+func (s *MemStorage) Dumper() error {
+	fmt.Println("Dumper started")
+	// var dumpWg sync.WaitGroup
+	// dumpWg.Add(1)
+	for {
+		// defer dumpWg.Done()
+		if s.cfg.StoreInterval > 0 {
+			time.Sleep(time.Duration(s.cfg.StoreInterval) * time.Second)
+		}
+		fmt.Printf("Dump storage to file... ")
+		err := s.SaveToFile()
+		if err != nil {
+			return err
+		}
+		fmt.Printf("done\n")
+	}
+	// }()
+	// return nil
 }

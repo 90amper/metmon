@@ -16,8 +16,11 @@ type Storager interface {
 	GetCurrentGauge(mName string) (models.Gauge, error)
 	GetCurrentGauges() (models.GaugeList, error)
 	GetCounter(mName string) (models.Counter, error)
+	SaveToFile() error
+	LoadFromFile() error
+	Dumper() error
 }
 
-func NewStorage() Storager {
-	return inmem.NewInMem()
+func NewStorage(cfg *models.Config) Storager {
+	return inmem.NewInMem(cfg)
 }
