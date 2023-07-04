@@ -18,11 +18,9 @@ func init() {
 	wdPath, _ := os.Getwd()
 	if runtime.GOOS == "windows" {
 		Config.PathSeparator = "\\"
-		// Config.ProjPath = strings.Join([]string{wdPath, "..", ".."}, Config.PathSeparator)
 		pflag.StringVarP(&Config.FileStoragePath, "storefile", "f", strings.Join([]string{user.HomeDir, "metrics-db.json"}, Config.PathSeparator), "metrics store file path")
 	} else {
 		Config.PathSeparator = "/"
-		// Config.ProjPath = wdPath
 		pflag.StringVarP(&Config.FileStoragePath, "storefile", "f", "/tmp/metrics-db.json", "metrics store file path")
 	}
 	Config.ProjPath = wdPath

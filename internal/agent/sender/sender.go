@@ -31,52 +31,22 @@ func NewSender(config models.Config, storage storage.Storager) (*Sender, error) 
 	}, nil
 }
 
-// Compress сжимает слайс байт.
 func Compress(data []byte) ([]byte, error) {
 	var b bytes.Buffer
-	// создаём переменную w — в неё будут записываться входящие данные,
-	// которые будут сжиматься и сохраняться в bytes.Buffer
 	w := gzip.NewWriter(&b)
-	// запись данных
 	_, err := w.Write(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
 	}
-	// обязательно нужно вызвать метод Close() — в противном случае часть данных
-	// может не записаться в буфер b; если нужно выгрузить все упакованные данные
-	// в какой-то момент сжатия, используйте метод Flush()
 	err = w.Close()
 	if err != nil {
 		return nil, fmt.Errorf("failed compress data: %v", err)
 	}
-	// переменная b содержит сжатые данные
 	return b.Bytes(), nil
 }
 
-// func Compressor(req *http.Request) {
-//     var b []byte
-// 	req.Body.Read(b)
-//     var buf bytes.Buffer
-//     g := gzip.NewWriter(&buf)
-
-//     _, err := io.Copy(g, &b)
-//     if err != nil {
-//         logger.Log(err.Error())
-//         return
-//     }
-// }
-
 func (s *Sender) Post(path string, body interface{}) error {
-	// fmt.Println(path)
 	spew.Printf("%#v\n", body)
-	// json, err := json.Marshal(body)
-	// if err != nil {
-	// 	logger.Log(err.Error())
-	// }
-	// gzjson, err := Compress(json)
-	// if err != nil {
-	// 	logger.Log(err.Error())
-	// }
 
 	var jbuf, gbuf bytes.Buffer
 	json.NewEncoder(&jbuf).Encode(body)
@@ -138,7 +108,6 @@ func (s *Sender) SendGauges() error {
 		return nil
 	}
 	for name, values := range gauges {
-		// namePath := basePath + "/" + name
 		for _, value := range values {
 			val := float64(value)
 			metr := models.Metric{

@@ -18,7 +18,6 @@ import (
 	"github.com/go-chi/cors"
 
 	mdw "github.com/90amper/metmon/internal/middleware"
-	// "go.uber.org/zap"
 )
 
 type Server struct {
@@ -32,19 +31,14 @@ type Server struct {
 func (s *Server) NewRouter() *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		// AllowedOrigins: []string{"https://*", "http://*"},
-		AllowedOrigins: []string{"*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		// AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedOrigins:   []string{"*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		MaxAge:           300,
 	}))
 	r.Use(mdw.GzipMiddleware)
-	// r.Use(middleware.Logger)
 	r.Use(mdw.Logger)
 	FileServer(r, "/html", http.Dir(s.FsPath))
 	r.Get("/", s.Handler.GetAllMetrics)
@@ -62,8 +56,6 @@ func (s *Server) NewRouter() *chi.Mux {
 			})
 		})
 	})
-	// r.Post("/value", s.Handler.GetCurrentMetric)
-	// r.Post("/update", s.Handler.ReceiveMetrics)
 	return r
 }
 
@@ -103,20 +95,12 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 
 func Run() (err error) {
 	var signals = []os.Signal{
-		// os.Interrupt,
 		syscall.SIGINT,
 		syscall.SIGQUIT,
-		// syscall.SIGABRT,
-		// syscall.SIGKILL,
-		// syscall.SIGTERM,
-		// syscall.SIGSTOP,
 	}
 
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, signals...)
-
-	// rootCtx := context.Background()
-	// taskCtx, cancelFn := context.WithCancel(rootCtx)
 
 	srv, err := NewServer()
 	if err != nil {
@@ -143,7 +127,6 @@ func Run() (err error) {
 	}
 
 	<-shutdown
-	// cancelFn()
 	fmt.Printf("%v Shutdown MetMon server ... ", time.Now().Format(time.RFC3339))
 	srv.Storage.SaveToFile()
 	fmt.Printf("done\n")

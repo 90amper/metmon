@@ -110,7 +110,6 @@ func (s *MemStorage) SaveToFile() error {
 		logger.Log(err.Error())
 	}
 
-	// file := OpenFile(s.filePath, syscall.O_WRONLY, perm FileMode) (*File, error)
 	return nil
 }
 func (s *MemStorage) LoadFromFile() error {
@@ -118,12 +117,10 @@ func (s *MemStorage) LoadFromFile() error {
 	store := &MemStorage{}
 	file, err := os.ReadFile(s.cfg.FileStoragePath)
 	if err != nil {
-		// logger.Log(err.Error())
 		return err
 	}
 	err = json.Unmarshal(file, store)
 	if err != nil {
-		// logger.Log(err.Error())
 		return err
 	}
 	s.Counters = store.Counters
@@ -134,10 +131,7 @@ func (s *MemStorage) LoadFromFile() error {
 
 func (s *MemStorage) Dumper() error {
 	fmt.Println("Dumper started")
-	// var dumpWg sync.WaitGroup
-	// dumpWg.Add(1)
 	for {
-		// defer dumpWg.Done()
 		if s.cfg.StoreInterval > 0 {
 			time.Sleep(time.Duration(s.cfg.StoreInterval) * time.Second)
 		}
@@ -148,6 +142,4 @@ func (s *MemStorage) Dumper() error {
 		}
 		fmt.Printf("done\n")
 	}
-	// }()
-	// return nil
 }
