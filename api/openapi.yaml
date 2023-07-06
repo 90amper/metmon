@@ -1,0 +1,89 @@
+openapi: '3.0.2'
+info:
+  title: Metrics Monitoring API
+  version: '1.0'
+servers:
+  - url: http://localhost:8080
+paths:
+  /update:
+    post:
+      parameters:
+        - in: header
+          name: Accept-Encoding
+          schema:
+            type: string
+            default: 'gzip'
+      operationId: UpdateMetricValue
+      responses:
+        '200':
+          description: OK
+          headers:
+            Accept-Encoding:
+              schema:
+                type: string
+                default: 'gzip'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metric'
+  /value:
+    post:
+      parameters:
+        - in: header
+          name: Accept-Encoding
+          schema:
+            type: string
+            default: 'gzip'
+      operationId: GetMetricValue
+      responses:
+        '200':
+          description: OK
+          headers:
+            Accept-Encoding:
+              schema:
+                type: string
+                default: 'gzip'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metric'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Metric'
+components:
+  schemas:
+    Metric:
+      type: object
+      required:
+        - "id"
+        - "type"
+      properties:
+        id:
+          x-go-name: "ID"
+          type: string
+        type:
+          type: string
+          x-go-name: "MType"
+          default: gauge
+          # enum:
+          #   - counter
+          #   - gauge
+          # x-enum-varnames:
+          #   - MCounter
+          #   - MGauge
+        delta:
+          type: integer
+          format: int64
+          x-go-name: "Delta"
+        value:
+          type: number
+          format: double
+          x-go-name: "Value"
+      example:
+        id: tst
+        type: gauge
+        value: 3.14
+

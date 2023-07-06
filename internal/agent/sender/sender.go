@@ -1,6 +1,9 @@
 package sender
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -8,6 +11,7 @@ import (
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type Sender struct {
@@ -27,13 +31,36 @@ func NewSender(config models.Config, storage storage.Storager) (*Sender, error) 
 	}, nil
 }
 
-func (s *Sender) Post(path string) error {
-	fmt.Println(path)
-	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, nil)
+func Compress(data []byte) ([]byte, error) {
+	var b bytes.Buffer
+	w := gzip.NewWriter(&b)
+	_, err := w.Write(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed write data to compress temporary buffer: %v", err)
+	}
+	err = w.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed compress data: %v", err)
+	}
+	return b.Bytes(), nil
+}
+
+func (s *Sender) Post(path string, body interface{}) error {
+	spew.Printf("%#v\n", body)
+
+	var jbuf, gbuf bytes.Buffer
+	json.NewEncoder(&jbuf).Encode(body)
+
+	gz := gzip.NewWriter(&gbuf)
+	gz.Write(jbuf.Bytes())
+	gz.Close()
+
+	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, &gbuf)
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "text/plain")
+	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -72,7 +99,7 @@ func (s *Sender) SendStore() (err error) {
 }
 
 func (s *Sender) SendGauges() error {
-	basePath := "update/gauge"
+	basePath := "update"
 	gauges, err := s.storage.GetGauges()
 	if err != nil {
 		return err
@@ -81,10 +108,14 @@ func (s *Sender) SendGauges() error {
 		return nil
 	}
 	for name, values := range gauges {
-		namePath := basePath + "/" + name
 		for _, value := range values {
-			path := namePath + "/" + fmt.Sprintf("%f", value)
-			err := s.Post(path)
+			val := float64(value)
+			metr := models.Metric{
+				ID:    name,
+				MType: "gauge",
+				Value: &val,
+			}
+			err := s.Post(basePath, metr)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -94,7 +125,7 @@ func (s *Sender) SendGauges() error {
 }
 
 func (s *Sender) SendCounters() error {
-	basePath := "update/counter"
+	basePath := "update"
 	counters, err := s.storage.GetCounters()
 	if err != nil {
 		return err
@@ -103,9 +134,13 @@ func (s *Sender) SendCounters() error {
 		return nil
 	}
 	for name, value := range counters {
-		namePath := basePath + "/" + name
-		path := namePath + "/" + fmt.Sprintf("%d", value)
-		err := s.Post(path)
+		val := int64(value)
+		metr := models.Metric{
+			ID:    name,
+			MType: "counter",
+			Delta: &val,
+		}
+		err := s.Post(basePath, metr)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
