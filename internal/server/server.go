@@ -59,7 +59,7 @@ func (s *Server) NewRouter() *chi.Mux {
 			})
 		})
 	})
-	r.Post("/updates", s.Handler.ReceiveJSONMetrics)
+	r.Post("/updates/", s.Handler.ReceiveJSONMetrics)
 	return r
 }
 
