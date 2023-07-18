@@ -14,6 +14,7 @@ import (
 	"github.com/90amper/metmon/internal/server/config"
 	"github.com/90amper/metmon/internal/server/handlers"
 	"github.com/90amper/metmon/internal/storage"
+	"github.com/90amper/metmon/internal/storage/inmem"
 	"github.com/90amper/metmon/internal/storage/sqlbase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -65,7 +66,11 @@ func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 	srv.Ctx = context.Background()
 	// srv.Storage = storage.NewStorage(&config.Config)
-	srv.Storage = sqlbase.NewSqlBase(&config.Config)
+	if config.Config.DatabaseDsn != "" {
+		srv.Storage = sqlbase.NewSqlBase(&config.Config)
+	} else {
+		srv.Storage = inmem.NewInMem(&config.Config)
+	}
 
 	srv.FsPath = strings.Join([]string{config.Config.ProjPath, "internal", "server", "html", ""}, config.Config.PathSeparator)
 
