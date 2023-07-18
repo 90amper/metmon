@@ -17,6 +17,7 @@ type (
 	responseData struct {
 		status int
 		size   int
+		body   bytes.Buffer
 	}
 
 	loggingResponseWriter struct {
@@ -27,6 +28,7 @@ type (
 
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
+	r.responseData.body.Write(b)
 	r.responseData.size += size
 	return size, err
 }
@@ -51,20 +53,24 @@ func Logger(h http.Handler) http.Handler {
 
 		duration := time.Since(start)
 		buf, _ := io.ReadAll(r.Body)
-
+		// wbuf, _ := io.ReadAll(w.Body)
 		reader := io.NopCloser(bytes.NewBuffer(buf))
+		// writer := io.NopCloser(bytes.NewBuffer(wbuf))
 		r.Body = reader
 
 		h.ServeHTTP(&lw, r)
 
 		sugar.Infoln(
-			"uri", r.RequestURI,
-			"method", r.Method,
+			"_uri:", r.RequestURI,
+			"_method:", r.Method,
 			// "body", spew.Sprintf("%#v", buf),
-			"body", fmt.Sprint(strings.ReplaceAll(string(buf), "\"", "")),
-			"status", responseData.status,
-			"duration", duration,
-			"size", responseData.size,
+			"_req_body:", fmt.Sprint(strings.ReplaceAll(string(buf), "\"", "")),
+			"_resp_body:", fmt.Sprint(strings.ReplaceAll(strings.Join(strings.Fields(responseData.body.String()), " "), "\"", "")),
+			// "body", fmt.Sprint(strings.ReplaceAll(string(buf), "\\", "")),
+			// "body", fmt.Sprint(string(buf)),
+			"_status:", responseData.status,
+			"_duration:", duration,
+			"_size:", responseData.size,
 		)
 	}
 	return http.HandlerFunc(logFn)
