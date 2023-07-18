@@ -51,7 +51,7 @@ func (hl *MMHandler) ReceiveJSONMetric(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		val := float64(curVal)
-		logger.Debug("Current %s: %v", mName, val)
+		logger.Trace("Current %s: %v", mName, val)
 		resp.Value = &val
 	case "counter":
 		if mDelta == nil {
@@ -127,7 +127,7 @@ func (hl *MMHandler) ReceiveJSONMetrics(w http.ResponseWriter, r *http.Request) 
 				return
 			}
 			val := float64(curVal)
-			logger.Debug("Current %s: %v", mName, val)
+			logger.Trace("Current %s: %v", mName, val)
 			// resp.Value = &val
 			resp = append(resp, models.Metric{
 				ID:    mName,
@@ -153,7 +153,7 @@ func (hl *MMHandler) ReceiveJSONMetrics(w http.ResponseWriter, r *http.Request) 
 				return
 			}
 			val := int64(curVal)
-			logger.Debug("Current %s: %v", mName, val)
+			logger.Trace("Current %s: %v", mName, val)
 			// resp.Delta = &val
 			resp = append(resp, models.Metric{
 				ID:    mName,

@@ -18,7 +18,7 @@ func (sb *SqlBase) createMetric(name string, mtype bool) error {
 		return fmt.Errorf("create metric failed: %w", err)
 	}
 	aff, _ := res.RowsAffected()
-	logger.Debug("Rows affected: %v", aff)
+	logger.Trace("Rows affected: %v", aff)
 	return nil
 }
 
@@ -101,7 +101,7 @@ func (sb *SqlBase) AddGauge(name string, value models.Gauge) error {
 		return err
 	}
 	aff, _ := res.RowsAffected()
-	logger.Debug("Rows affected: %v", aff)
+	logger.Trace("Rows affected: %v", aff)
 	return nil
 }
 
@@ -120,7 +120,7 @@ func (sb *SqlBase) AddCounter(name string, value models.Counter) error {
 		return err
 	}
 	aff, _ := res.RowsAffected()
-	logger.Debug("Rows affected: %v", aff)
+	logger.Trace("Rows affected: %v", aff)
 	return nil
 }
 
@@ -134,7 +134,7 @@ func (sb *SqlBase) TickCounter(name string) error {
 		return err
 	}
 	aff, _ := res.RowsAffected()
-	logger.Debug("Rows affected: %v", aff)
+	logger.Trace("Rows affected: %v", aff)
 	return nil
 }
 func (sb *SqlBase) GetCurrentGauge(mName string) (models.Gauge, error) {
