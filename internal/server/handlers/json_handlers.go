@@ -90,7 +90,12 @@ func (hl *MMHandler) ReceiveJSONMetrics(w http.ResponseWriter, r *http.Request) 
 	err := json.NewDecoder(r.Body).Decode(&reqArr)
 	if err != nil {
 		logger.Error(fmt.Errorf("can't decode metric: %w", err))
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		// http.Error(w, err.Error(), http.StatusBadRequest)
+		// mock, _ := json.Marshal([]string{})
+		// http.Error(w, "[]", http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode([]string{})
 		return
 	}
 
