@@ -15,14 +15,8 @@ func Log(format string, args ...interface{}) {
 		format = strings.ReplaceAll(format, "$", "")
 		intformat = "%v LOG::  %s"
 	}
-	// if strings.Contains(format, "^") {
-	// 	format = strings.ReplaceAll(format, "^", "")
-	// 	intformat = "%s"
-	// }
-	// for _, val := range args {
 	fmt.Printf(intformat, time.Now().Format(time.RFC3339), fmt.Sprintf(format, args...))
-	// fmt.Printf("%v Starting server at %v\n", time.Now().Format(time.RFC3339), config.Config.ServerURL)
-	// }
+
 }
 
 func Printf(format string, args ...interface{}) {

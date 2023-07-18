@@ -66,7 +66,6 @@ func (s *Server) NewRouter() *chi.Mux {
 func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 	srv.Ctx = context.Background()
-	// srv.Storage = storage.NewStorage(&config.Config)
 	if config.Config.DatabaseDsn != "" {
 		srv.Storage = sqlbase.NewSQLBase(&config.Config)
 	} else {

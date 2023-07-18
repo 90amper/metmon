@@ -95,20 +95,6 @@ func (s *MemStorage) TickCounter(name string) error {
 	return nil
 }
 
-// func (s *MemStorage) CleanGauges() error {
-// 	s.Mu.Lock()
-// 	defer s.Mu.Unlock()
-// 	s.Gauges = nil
-// 	return nil
-// }
-
-// func (s *MemStorage) ResetCounters() error {
-// 	s.Mu.Lock()
-// 	defer s.Mu.Unlock()
-// 	s.Counters = make(models.CounterStore)
-// 	return nil
-// }
-
 func (s *MemStorage) Purge() error {
 	s.Mu.Lock()
 	defer s.Mu.Unlock()
@@ -124,7 +110,6 @@ func (s *MemStorage) GetAllMetrics() ([]models.Metric, error) {
 	defer s.Mu.Unlock()
 	gauges := s.Gauges
 	counters := s.Counters
-	// s.Mu.Unlock()
 
 	for name, values := range gauges {
 		for _, value := range values {

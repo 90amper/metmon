@@ -9,8 +9,6 @@ type Storager interface {
 	AddCounter(name string, value models.Counter) error
 	BatchAdd([]models.Metric) error
 	TickCounter(name string) error
-	// CleanGauges() error
-	// ResetCounters() error
 	Purge() error
 	GetAllMetrics() ([]models.Metric, error)
 	GetGauges() (models.GaugeStore, error)
@@ -23,8 +21,3 @@ type Storager interface {
 	Dumper() error
 	PingDB() error
 }
-
-// func NewStorage(cfg *models.Config) Storager {
-// 	// return inmem.NewInMem(cfg)
-// 	return sqlbase.NewSQLBase(cfg)
-// }

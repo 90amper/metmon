@@ -35,14 +35,6 @@ const (
 	scounter = false
 )
 
-// func (sb *SQLBase) CleanGauges() error {
-// 	return fmt.Errorf("not implemented yet")
-// }
-
-// func (sb *SQLBase) ResetCounters() error {
-// 	return fmt.Errorf("not implemented yet")
-// }
-
 func (sb *SQLBase) Purge() error {
 	return fmt.Errorf("not implemented yet")
 }
@@ -102,9 +94,7 @@ func (sb *SQLBase) AddGauge(name string, value models.Gauge) error {
 
 	sqlQuery := loadSnippet("snippets/insert_gauge.sql")
 	res, err := sb.db.Exec(sqlQuery, name, value)
-	// sql.NamedArg("name", name),
-	// sql.Named("type", true),
-	// sql.Named("value", value),
+
 	if err != nil {
 		return err
 	}

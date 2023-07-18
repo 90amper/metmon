@@ -22,7 +22,6 @@ func NewAgent() (agent *Agent, err error) {
 	var a Agent
 	a.PollInterval = time.Duration(config.Config.PollInterval) * time.Second
 	a.ReportInterval = time.Duration(config.Config.ReportInterval) * time.Second
-	// a.Storage = storage.NewStorage(&config.Config)
 	a.Storage = inmem.NewInMem(&config.Config)
 	a.Collector, err = collector.NewCollector(config.Config, a.Storage)
 	if err != nil {

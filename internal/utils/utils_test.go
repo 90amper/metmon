@@ -6,10 +6,6 @@ import (
 )
 
 func TestRetryer(t *testing.T) {
-	// type args struct {
-	// 	fn func() error
-	// }
-
 	called := 0
 	tests := []struct {
 		name    string
@@ -21,7 +17,7 @@ func TestRetryer(t *testing.T) {
 			fn: func() error {
 				err := fmt.Errorf("caller %d", called)
 				fmt.Println(err.Error())
-				if called == 2 { // only 5th call returns ok
+				if called == 2 {
 					return nil
 				}
 				called++

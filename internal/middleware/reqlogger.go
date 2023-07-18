@@ -53,9 +53,7 @@ func Logger(h http.Handler) http.Handler {
 
 		duration := time.Since(start)
 		buf, _ := io.ReadAll(r.Body)
-		// wbuf, _ := io.ReadAll(w.Body)
 		reader := io.NopCloser(bytes.NewBuffer(buf))
-		// writer := io.NopCloser(bytes.NewBuffer(wbuf))
 		r.Body = reader
 
 		h.ServeHTTP(&lw, r)
@@ -64,8 +62,6 @@ func Logger(h http.Handler) http.Handler {
 			"_uri:", r.RequestURI,
 			"_method:", r.Method,
 			// "body", spew.Sprintf("%#v", buf),
-			// "_req_body:", fmt.Sprint(strings.ReplaceAll(string(buf), "\"", "")),
-			// "_resp_body:", fmt.Sprint(strings.ReplaceAll(strings.Join(strings.Fields(responseData.body.String()), " "), "\"", "")),
 			"_status:", responseData.status,
 			"_duration:", duration,
 			"_size:", responseData.size,

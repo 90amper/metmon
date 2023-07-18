@@ -34,11 +34,9 @@ func ParseCounter(str string) (res models.Counter, err error) {
 	return models.Counter(vali), nil
 }
 
-// Use: helper function
+// Use: write helper function that returns error
 func Retryer(fn func() error) error {
-	// , args ...any
 	var err error
-	// delay := 0 * time.Second
 	for i := 0; i <= 3; i++ {
 		if i == 1 {
 			logger.Log("attempting to retry $")
