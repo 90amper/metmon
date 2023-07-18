@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func Log(format string, args ...interface{}) {
@@ -24,6 +25,7 @@ func Error(err error) {
 
 func NewDebugLogger() zap.SugaredLogger {
 	config := zap.NewProductionConfig()
+	config.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	config.OutputPaths = []string{"stdout"}
 	config.DisableCaller = true
 	lgr, err := config.Build()

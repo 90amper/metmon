@@ -25,5 +25,6 @@ type Config struct {
 	Restore         bool   `env:"RESTORE"`
 	PathSeparator   string
 	ProjPath        string
+	Cleanup         bool
 	DatabaseDsn     string `env:"DATABASE_DSN"`
 }

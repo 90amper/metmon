@@ -28,7 +28,7 @@ func NewSqlBase(cfg *models.Config) *SqlBase {
 	var err error = nil
 	sb := &SqlBase{
 		driver: "pgx",
-		reset:  true,
+		reset:  cfg.Cleanup,
 	}
 	// ps := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 	// 	`localhost`, `video`, `XXXXXXXX`, `video`)
