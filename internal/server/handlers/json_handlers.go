@@ -10,76 +10,109 @@ import (
 )
 
 func (hl *MMHandler) ReceiveJSONMetrics(w http.ResponseWriter, r *http.Request) {
-	var req models.Metric
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	var err error
+	var resp []models.Metric
+	var reqArr []models.Metric
+	var reqOne *models.Metric
+
+	err = json.NewDecoder(r.Body).Decode(&reqArr)
+	if err != nil {
+		logger.Debug("can't decode metric array: %v", err.Error())
+		err = json.NewDecoder(r.Body).Decode(&reqOne)
+	}
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		logger.Error(err)
 		return
 	}
 
-	mType := req.MType
-	mName := req.ID
-	mValue := req.Value
-	mDelta := req.Delta
+	if reqOne != nil {
+		reqArr = append(reqArr, *reqOne)
+	}
 
-	if mName == "" {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Metric name not specified!"))
-		return
-	}
-	resp := models.Metric{
-		ID:    mName,
-		MType: mType,
-	}
-	switch mType {
-	case "gauge":
-		if mValue == nil {
+	for _, req := range reqArr {
+
+		mType := req.MType
+		mName := req.ID
+		mValue := req.Value
+		mDelta := req.Delta
+
+		if mName == "" {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Metric name not specified!"))
+			return
+		}
+		// resp := models.Metric{
+		// 	ID:    mName,
+		// 	MType: mType,
+		// }
+		switch mType {
+		case "gauge":
+			if mValue == nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			err := hl.storage.AddGauge(mName, models.Gauge(*mValue))
+			if err != nil {
+				logger.Error(fmt.Errorf("add gauge failed: %w", err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			curVal, err := hl.storage.GetCurrentGauge(mName)
+			if err != nil {
+
+				logger.Error(fmt.Errorf("read gauge failed: %w", err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			val := float64(curVal)
+			logger.Debug("Current %s: %v", mName, val)
+			// resp.Value = &val
+			resp = append(resp, models.Metric{
+				ID:    mName,
+				MType: mType,
+				Value: &val,
+			})
+		case "counter":
+			if mDelta == nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			err := hl.storage.AddCounter(mName, models.Counter(*mDelta))
+			if err != nil {
+				logger.Error(fmt.Errorf("add counter failed: %w", err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			curVal, err := hl.storage.GetCounter(mName)
+			if err != nil {
+				// logger.Log(err.Error())
+				logger.Error(fmt.Errorf("read counter failed: %w", err))
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			val := int64(curVal)
+			logger.Debug("Current %s: %v", mName, val)
+			// resp.Delta = &val
+			resp = append(resp, models.Metric{
+				ID:    mName,
+				MType: mType,
+				Delta: &val,
+			})
+		default:
 			w.WriteHeader(http.StatusBadRequest)
-			return
+			w.Write([]byte("Unknown metric type: " + mType))
+			continue
 		}
-		err := hl.storage.AddGauge(mName, models.Gauge(*mValue))
-		if err != nil {
-			logger.Error(fmt.Errorf("add gauge failed: %w", err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		curVal, err := hl.storage.GetCurrentGauge(mName)
-		if err != nil {
-
-			logger.Error(fmt.Errorf("read gauge failed: %w", err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		val := float64(curVal)
-		resp.Value = &val
-	case "counter":
-		if mDelta == nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		err := hl.storage.AddCounter(mName, models.Counter(*mDelta))
-		if err != nil {
-			logger.Error(fmt.Errorf("add counter failed: %w", err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		curVal, err := hl.storage.GetCounter(mName)
-		if err != nil {
-			// logger.Log(err.Error())
-			logger.Error(fmt.Errorf("read counter failed: %w", err))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		val := int64(curVal)
-		resp.Delta = &val
-	default:
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Unknown metric type: " + mType))
-		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	if reqOne != nil {
+		json.NewEncoder(w).Encode(resp[0])
+	}
 	json.NewEncoder(w).Encode(resp)
+
 }
 
 func (hl *MMHandler) GetCurrentJSONMetric(w http.ResponseWriter, r *http.Request) {

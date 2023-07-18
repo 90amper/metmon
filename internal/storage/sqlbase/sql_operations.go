@@ -59,6 +59,31 @@ func (sb *SqlBase) Dumper() error {
 	return fmt.Errorf("not implemented yet")
 }
 
+func (sb *SqlBase) BatchAdd(ms []models.Metric) error {
+	var errs []error
+	for _, metric := range ms {
+		var err error
+		switch metric.MType {
+		case "gauge":
+			err = sb.AddGauge(metric.ID, models.Gauge(*metric.Value))
+			if err != nil {
+				errs = append(errs, err)
+			}
+		case "counter":
+			err = sb.AddCounter(metric.ID, models.Counter(*metric.Delta))
+			if err != nil {
+				errs = append(errs, err)
+			}
+		default:
+			err := fmt.Errorf("unsupported metric type")
+			errs = append(errs, err)
+			logger.Error(err)
+			continue
+		}
+	}
+	return errors.Join(errs...)
+}
+
 func (sb *SqlBase) AddGauge(name string, value models.Gauge) error {
 	var err error = nil
 

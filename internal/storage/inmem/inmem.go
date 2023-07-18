@@ -2,6 +2,7 @@ package inmem
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -23,6 +24,31 @@ func NewInMem(cfg *models.Config) *MemStorage {
 
 func (s *MemStorage) PingDB() error {
 	return fmt.Errorf("not supported in memory storage")
+}
+
+func (s *MemStorage) BatchAdd(ms []models.Metric) error {
+	var errs []error
+	for _, metric := range ms {
+		var err error
+		switch metric.MType {
+		case "gauge":
+			err = s.AddGauge(metric.ID, models.Gauge(*metric.Value))
+			if err != nil {
+				errs = append(errs, err)
+			}
+		case "counter":
+			err = s.AddCounter(metric.ID, models.Counter(*metric.Delta))
+			if err != nil {
+				errs = append(errs, err)
+			}
+		default:
+			err := fmt.Errorf("unsupported metric type")
+			errs = append(errs, err)
+			logger.Error(err)
+			continue
+		}
+	}
+	return errors.Join(errs...)
 }
 
 func (s *MemStorage) AddGauge(name string, value models.Gauge) error {

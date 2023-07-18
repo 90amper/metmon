@@ -7,6 +7,7 @@ import (
 type Storager interface {
 	AddGauge(name string, value models.Gauge) error
 	AddCounter(name string, value models.Counter) error
+	BatchAdd([]models.Metric) error
 	TickCounter(name string) error
 	CleanGauges() error
 	ResetCounters() error
