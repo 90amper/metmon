@@ -119,6 +119,15 @@ func (s *Sender) BatchSend() (err error) {
 		logger.Error(err)
 	}
 
+	err = s.storage.CleanGauges()
+	if err != nil {
+		logger.Error(err)
+	}
+	err = s.storage.ResetCounters()
+	if err != nil {
+		logger.Error(err)
+	}
+
 	return nil
 }
 

@@ -1,11 +1,14 @@
 package models
 
+import "sync"
+
 type (
 	Gauge   float64
 	Counter int64
 )
 
 type Store struct {
+	Mu       sync.Mutex
 	Gauges   GaugeStore   `json:"gauges"`
 	Counters CounterStore `json:"counters"`
 }

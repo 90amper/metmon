@@ -27,6 +27,8 @@ func (s *MemStorage) PingDB() error {
 }
 
 func (s *MemStorage) BatchAdd(ms []models.Metric) error {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	var errs []error
 	for _, metric := range ms {
 		var err error
@@ -52,6 +54,8 @@ func (s *MemStorage) BatchAdd(ms []models.Metric) error {
 }
 
 func (s *MemStorage) AddGauge(name string, value models.Gauge) error {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	if s.Gauges == nil {
 		s.Gauges = make(models.GaugeStore)
 	}
@@ -63,6 +67,8 @@ func (s *MemStorage) AddGauge(name string, value models.Gauge) error {
 }
 
 func (s *MemStorage) AddCounter(name string, value models.Counter) error {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	if s.Counters == nil {
 		s.Counters = make(models.CounterStore)
 	}
@@ -75,6 +81,8 @@ func (s *MemStorage) AddCounter(name string, value models.Counter) error {
 }
 
 func (s *MemStorage) TickCounter(name string) error {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	if s.Counters == nil {
 		s.Counters = make(models.CounterStore)
 	}
@@ -88,24 +96,34 @@ func (s *MemStorage) TickCounter(name string) error {
 }
 
 func (s *MemStorage) CleanGauges() error {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	s.Gauges = nil
 	return nil
 }
 
 func (s *MemStorage) ResetCounters() error {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	s.Counters = make(models.CounterStore)
 	return nil
 }
 
 func (s *MemStorage) GetGauges() (models.GaugeStore, error) {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	return s.Gauges, nil
 }
 
 func (s *MemStorage) GetCounters() (models.CounterStore, error) {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	return s.Counters, nil
 }
 
 func (s *MemStorage) GetCurrentGauge(mName string) (models.Gauge, error) {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	if _, ok := s.Gauges[mName]; !ok {
 		return 0, fmt.Errorf("gauge %s not found", mName)
 	}
@@ -113,6 +131,8 @@ func (s *MemStorage) GetCurrentGauge(mName string) (models.Gauge, error) {
 }
 
 func (s *MemStorage) GetCounter(mName string) (models.Counter, error) {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	if _, ok := s.Counters[mName]; !ok {
 		return 0, fmt.Errorf("counter %s not found", mName)
 	}
@@ -120,6 +140,8 @@ func (s *MemStorage) GetCounter(mName string) (models.Counter, error) {
 }
 
 func (s *MemStorage) GetCurrentGauges() (models.GaugeList, error) {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	if s.Gauges == nil {
 		return models.GaugeList{}, nil
 	}
@@ -131,6 +153,8 @@ func (s *MemStorage) GetCurrentGauges() (models.GaugeList, error) {
 }
 
 func (s *MemStorage) SaveToFile() error {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	json, err := json.Marshal(s)
 	if err != nil {
 		logger.Log(err.Error())
@@ -143,6 +167,8 @@ func (s *MemStorage) SaveToFile() error {
 	return nil
 }
 func (s *MemStorage) LoadFromFile() error {
+	s.Mu.Lock()
+	defer s.Mu.Unlock()
 	fmt.Printf("Loading storage from file... ")
 	store := &MemStorage{}
 	file, err := os.ReadFile(s.cfg.FileStoragePath)
