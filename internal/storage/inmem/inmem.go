@@ -95,18 +95,59 @@ func (s *MemStorage) TickCounter(name string) error {
 	return nil
 }
 
-func (s *MemStorage) CleanGauges() error {
+// func (s *MemStorage) CleanGauges() error {
+// 	s.Mu.Lock()
+// 	defer s.Mu.Unlock()
+// 	s.Gauges = nil
+// 	return nil
+// }
+
+// func (s *MemStorage) ResetCounters() error {
+// 	s.Mu.Lock()
+// 	defer s.Mu.Unlock()
+// 	s.Counters = make(models.CounterStore)
+// 	return nil
+// }
+
+func (s *MemStorage) Purge() error {
 	s.Mu.Lock()
 	defer s.Mu.Unlock()
+	s.Counters = make(models.CounterStore)
 	s.Gauges = nil
 	return nil
 }
 
-func (s *MemStorage) ResetCounters() error {
+func (s *MemStorage) GetAllMetrics() ([]models.Metric, error) {
+	var marr []models.Metric
+
 	s.Mu.Lock()
 	defer s.Mu.Unlock()
-	s.Counters = make(models.CounterStore)
-	return nil
+	gauges := s.Gauges
+	counters := s.Counters
+	// s.Mu.Unlock()
+
+	for name, values := range gauges {
+		for _, value := range values {
+			val := float64(value)
+			metr := models.Metric{
+				ID:    name,
+				MType: "gauge",
+				Value: &val,
+			}
+			marr = append(marr, metr)
+		}
+	}
+	for name, value := range counters {
+		val := int64(value)
+		metr := models.Metric{
+			ID:    name,
+			MType: "counter",
+			Delta: &val,
+		}
+		marr = append(marr, metr)
+	}
+
+	return marr, nil
 }
 
 func (s *MemStorage) GetGauges() (models.GaugeStore, error) {

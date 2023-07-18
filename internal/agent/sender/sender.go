@@ -78,36 +78,11 @@ func (s *Sender) Post(path string, body interface{}) error {
 }
 
 func (s *Sender) BatchSend() (err error) {
-	var marr []models.Metric
 	basePath := "updates/"
 
-	gauges, err := s.storage.GetGauges()
+	marr, err := s.storage.GetAllMetrics()
 	if err != nil {
 		return err
-	}
-	counters, err := s.storage.GetCounters()
-	if err != nil {
-		return err
-	}
-	for name, values := range gauges {
-		for _, value := range values {
-			val := float64(value)
-			metr := models.Metric{
-				ID:    name,
-				MType: "gauge",
-				Value: &val,
-			}
-			marr = append(marr, metr)
-		}
-	}
-	for name, value := range counters {
-		val := int64(value)
-		metr := models.Metric{
-			ID:    name,
-			MType: "counter",
-			Delta: &val,
-		}
-		marr = append(marr, metr)
 	}
 
 	if len(marr) == 0 {
@@ -119,11 +94,7 @@ func (s *Sender) BatchSend() (err error) {
 		logger.Error(err)
 	}
 
-	err = s.storage.CleanGauges()
-	if err != nil {
-		logger.Error(err)
-	}
-	err = s.storage.ResetCounters()
+	err = s.storage.Purge()
 	if err != nil {
 		logger.Error(err)
 	}

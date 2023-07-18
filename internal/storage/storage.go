@@ -9,8 +9,10 @@ type Storager interface {
 	AddCounter(name string, value models.Counter) error
 	BatchAdd([]models.Metric) error
 	TickCounter(name string) error
-	CleanGauges() error
-	ResetCounters() error
+	// CleanGauges() error
+	// ResetCounters() error
+	Purge() error
+	GetAllMetrics() ([]models.Metric, error)
 	GetGauges() (models.GaugeStore, error)
 	GetCounters() (models.CounterStore, error)
 	GetCurrentGauge(mName string) (models.Gauge, error)

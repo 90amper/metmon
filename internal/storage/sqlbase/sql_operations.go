@@ -35,16 +35,24 @@ const (
 	scounter = false
 )
 
-func (sb *SQLBase) CleanGauges() error {
-	return fmt.Errorf("not implemented yet")
-}
+// func (sb *SQLBase) CleanGauges() error {
+// 	return fmt.Errorf("not implemented yet")
+// }
 
-func (sb *SQLBase) ResetCounters() error {
+// func (sb *SQLBase) ResetCounters() error {
+// 	return fmt.Errorf("not implemented yet")
+// }
+
+func (sb *SQLBase) Purge() error {
 	return fmt.Errorf("not implemented yet")
 }
 
 func (sb *SQLBase) GetGauges() (models.GaugeStore, error) {
 	return models.GaugeStore{}, fmt.Errorf("not implemented yet")
+}
+
+func (sb *SQLBase) GetAllMetrics() ([]models.Metric, error) {
+	return nil, fmt.Errorf("not implemented yet")
 }
 
 func (sb *SQLBase) SaveToFile() error {
