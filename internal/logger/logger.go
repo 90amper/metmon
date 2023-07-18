@@ -9,18 +9,17 @@ import (
 
 func Log(format string, args ...interface{}) {
 	// for _, val := range args {
-	fmt.Printf("%v %s", time.Now().Format(time.RFC3339), fmt.Sprintf(format, args...))
+	fmt.Printf("%v LOG::\t%s\n", time.Now().Format(time.RFC3339), fmt.Sprintf(format, args...))
 	// fmt.Printf("%v Starting server at %v\n", time.Now().Format(time.RFC3339), config.Config.ServerURL)
 	// }
-	fmt.Println()
 }
 
 func Debug(format string, args ...interface{}) {
-	// Log(format, args...)
+	fmt.Printf("%v DEBUG::\t%s\n", time.Now().Format(time.RFC3339), fmt.Sprintf(format, args...))
 }
 
 func Error(err error) {
-	fmt.Println(err.Error())
+	fmt.Printf("%v ERROR::\t%s\n", time.Now().Format(time.RFC3339), err.Error())
 }
 
 func NewDebugLogger() zap.SugaredLogger {

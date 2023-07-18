@@ -52,13 +52,14 @@ func (s *Server) NewRouter() *chi.Mux {
 		})
 	})
 	r.Route("/update", func(r chi.Router) {
-		r.Post("/", s.Handler.ReceiveJSONMetrics)
+		r.Post("/", s.Handler.ReceiveJSONMetric)
 		r.Route("/{type}", func(r chi.Router) {
 			r.Route("/{name}", func(r chi.Router) {
 				r.Post("/{value}", s.Handler.ReceiveMetrics)
 			})
 		})
 	})
+	r.Post("/updates", s.Handler.ReceiveJSONMetrics)
 	return r
 }
 
