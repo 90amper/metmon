@@ -18,15 +18,15 @@ import (
 //go:embed snippets/*.sql
 var SQL embed.FS
 
-type SqlBase struct {
+type SQLBase struct {
 	driver string
 	db     *sql.DB
 	reset  bool
 }
 
-func NewSqlBase(cfg *models.Config) *SqlBase {
+func NewSQLBase(cfg *models.Config) *SQLBase {
 	var err error = nil
-	sb := &SqlBase{
+	sb := &SQLBase{
 		driver: "pgx",
 		reset:  cfg.Cleanup,
 	}
@@ -60,7 +60,7 @@ func NewSqlBase(cfg *models.Config) *SqlBase {
 	// defer db.Close()
 }
 
-func (sb *SqlBase) drop() error {
+func (sb *SQLBase) drop() error {
 	sqlQuery := "DROP SCHEMA IF EXISTS metmon CASCADE;"
 	_, err := sb.db.Exec(sqlQuery)
 	if err != nil {
@@ -70,7 +70,7 @@ func (sb *SqlBase) drop() error {
 	return nil
 }
 
-func (sb *SqlBase) Init() error {
+func (sb *SQLBase) Init() error {
 	var err error = nil
 	sqlBytes, err := SQL.ReadFile("snippets/pgdb_create_2.sql")
 	if err != nil {
@@ -93,11 +93,11 @@ func (sb *SqlBase) Init() error {
 	return nil
 }
 
-func (sb *SqlBase) Close() {
+func (sb *SQLBase) Close() {
 	sb.db.Close()
 }
 
-func (sb *SqlBase) PingDB() error {
+func (sb *SQLBase) PingDB() error {
 	err := sb.db.Ping()
 	// var greeting string
 	// err := sb.db.QueryRow("select 'Hello, world!'").Scan(&greeting)

@@ -24,5 +24,5 @@ type Storager interface {
 
 // func NewStorage(cfg *models.Config) Storager {
 // 	// return inmem.NewInMem(cfg)
-// 	return sqlbase.NewSqlBase(cfg)
+// 	return sqlbase.NewSQLBase(cfg)
 // }

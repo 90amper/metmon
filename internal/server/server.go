@@ -68,7 +68,7 @@ func NewServer() (srv *Server, err error) {
 	srv.Ctx = context.Background()
 	// srv.Storage = storage.NewStorage(&config.Config)
 	if config.Config.DatabaseDsn != "" {
-		srv.Storage = sqlbase.NewSqlBase(&config.Config)
+		srv.Storage = sqlbase.NewSQLBase(&config.Config)
 	} else {
 		srv.Storage = inmem.NewInMem(&config.Config)
 	}

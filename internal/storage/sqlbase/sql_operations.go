@@ -10,7 +10,7 @@ import (
 	"github.com/90amper/metmon/internal/models"
 )
 
-func (sb *SqlBase) createMetric(name string, mtype bool) error {
+func (sb *SQLBase) createMetric(name string, mtype bool) error {
 	var err error = nil
 	sqlQuery := loadSnippet("snippets/insert_metric.sql")
 	res, err := sb.db.Exec(sqlQuery, name, mtype)
@@ -35,31 +35,31 @@ const (
 	scounter = false
 )
 
-func (sb *SqlBase) CleanGauges() error {
+func (sb *SQLBase) CleanGauges() error {
 	return fmt.Errorf("not implemented yet")
 }
 
-func (sb *SqlBase) ResetCounters() error {
+func (sb *SQLBase) ResetCounters() error {
 	return fmt.Errorf("not implemented yet")
 }
 
-func (sb *SqlBase) GetGauges() (models.GaugeStore, error) {
+func (sb *SQLBase) GetGauges() (models.GaugeStore, error) {
 	return models.GaugeStore{}, fmt.Errorf("not implemented yet")
 }
 
-func (sb *SqlBase) SaveToFile() error {
+func (sb *SQLBase) SaveToFile() error {
 	return fmt.Errorf("not implemented yet")
 }
 
-func (sb *SqlBase) LoadFromFile() error {
+func (sb *SQLBase) LoadFromFile() error {
 	return fmt.Errorf("not implemented yet")
 }
 
-func (sb *SqlBase) Dumper() error {
+func (sb *SQLBase) Dumper() error {
 	return fmt.Errorf("not implemented yet")
 }
 
-func (sb *SqlBase) BatchAdd(ms []models.Metric) error {
+func (sb *SQLBase) BatchAdd(ms []models.Metric) error {
 	var errs []error
 	for _, metric := range ms {
 		var err error
@@ -84,7 +84,7 @@ func (sb *SqlBase) BatchAdd(ms []models.Metric) error {
 	return errors.Join(errs...)
 }
 
-func (sb *SqlBase) AddGauge(name string, value models.Gauge) error {
+func (sb *SQLBase) AddGauge(name string, value models.Gauge) error {
 	var err error = nil
 
 	err = sb.createMetric(name, sgauge)
@@ -105,7 +105,7 @@ func (sb *SqlBase) AddGauge(name string, value models.Gauge) error {
 	return nil
 }
 
-func (sb *SqlBase) AddCounter(name string, value models.Counter) error {
+func (sb *SQLBase) AddCounter(name string, value models.Counter) error {
 	var err error = nil
 
 	err = sb.createMetric(name, scounter)
@@ -124,7 +124,7 @@ func (sb *SqlBase) AddCounter(name string, value models.Counter) error {
 	return nil
 }
 
-func (sb *SqlBase) TickCounter(name string) error {
+func (sb *SQLBase) TickCounter(name string) error {
 	var err error = nil
 
 	sqlQuery := loadSnippet("snippets/tick_counter.sql")
@@ -137,7 +137,7 @@ func (sb *SqlBase) TickCounter(name string) error {
 	logger.Trace("Rows affected: %v", aff)
 	return nil
 }
-func (sb *SqlBase) GetCurrentGauge(mName string) (models.Gauge, error) {
+func (sb *SQLBase) GetCurrentGauge(mName string) (models.Gauge, error) {
 	var err error = nil
 	sqlQuery := loadSnippet("snippets/select_metric.sql")
 	row := sb.db.QueryRow(sqlQuery, mName, sgauge)
@@ -153,7 +153,7 @@ func (sb *SqlBase) GetCurrentGauge(mName string) (models.Gauge, error) {
 	return gauge, nil
 }
 
-func (sb *SqlBase) GetCounter(mName string) (models.Counter, error) {
+func (sb *SQLBase) GetCounter(mName string) (models.Counter, error) {
 	var err error = nil
 	sqlQuery := loadSnippet("snippets/select_metric.sql")
 	row := sb.db.QueryRow(sqlQuery, mName, scounter)
@@ -169,7 +169,7 @@ func (sb *SqlBase) GetCounter(mName string) (models.Counter, error) {
 	return counter, nil
 }
 
-func (sb *SqlBase) GetCounters() (models.CounterStore, error) {
+func (sb *SQLBase) GetCounters() (models.CounterStore, error) {
 	var err error = nil
 	cs := make(models.CounterStore)
 	sqlQuery := loadSnippet("snippets/select_all_metrics.sql")
@@ -177,7 +177,6 @@ func (sb *SqlBase) GetCounters() (models.CounterStore, error) {
 	if err != nil {
 		return cs, err
 	}
-
 	defer rows.Close()
 	for rows.Next() {
 		var m sqlmetric
@@ -187,10 +186,15 @@ func (sb *SqlBase) GetCounters() (models.CounterStore, error) {
 		}
 		cs[m.name] = models.Counter(m.cvalue)
 	}
+	rows.Close()
+	err = rows.Err()
+	if err != nil {
+		return cs, err
+	}
 	return cs, nil
 }
 
-func (sb *SqlBase) GetCurrentGauges() (models.GaugeList, error) {
+func (sb *SQLBase) GetCurrentGauges() (models.GaugeList, error) {
 	var err error = nil
 	gl := make(models.GaugeList)
 	sqlQuery := loadSnippet("snippets/select_all_metrics.sql")
@@ -207,6 +211,11 @@ func (sb *SqlBase) GetCurrentGauges() (models.GaugeList, error) {
 			return gl, err
 		}
 		gl[m.name] = models.Gauge(m.gvalue)
+	}
+	rows.Close()
+	err = rows.Err()
+	if err != nil {
+		return gl, err
 	}
 	return gl, nil
 }
