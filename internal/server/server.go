@@ -14,6 +14,7 @@ import (
 	"github.com/90amper/metmon/internal/server/config"
 	"github.com/90amper/metmon/internal/server/handlers"
 	"github.com/90amper/metmon/internal/storage"
+	"github.com/90amper/metmon/internal/storage/sqlbase"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 
@@ -42,6 +43,7 @@ func (s *Server) NewRouter() *chi.Mux {
 	r.Use(mdw.Logger)
 	FileServer(r, "/html", http.Dir(s.FsPath))
 	r.Get("/", s.Handler.GetAllMetrics)
+	r.Get("/ping", s.Handler.PingDB)
 	r.Route("/value", func(r chi.Router) {
 		r.Post("/", s.Handler.GetCurrentJSONMetric)
 		r.Route("/{type}", func(r chi.Router) {
@@ -62,7 +64,8 @@ func (s *Server) NewRouter() *chi.Mux {
 func NewServer() (srv *Server, err error) {
 	srv = &Server{}
 	srv.Ctx = context.Background()
-	srv.Storage = storage.NewStorage(&config.Config)
+	// srv.Storage = storage.NewStorage(&config.Config)
+	srv.Storage = sqlbase.NewSqlBase(&config.Config)
 
 	srv.FsPath = strings.Join([]string{config.Config.ProjPath, "internal", "server", "html", ""}, config.Config.PathSeparator)
 

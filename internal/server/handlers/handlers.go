@@ -136,3 +136,13 @@ func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (hl *MMHandler) PingDB(w http.ResponseWriter, r *http.Request) {
+	err := hl.storage.PingDB()
+	if err != nil {
+		logger.Log(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+}

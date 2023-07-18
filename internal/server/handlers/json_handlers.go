@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/90amper/metmon/internal/logger"
@@ -35,10 +36,17 @@ func (hl *MMHandler) ReceiveJSONMetrics(w http.ResponseWriter, r *http.Request) 
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		hl.storage.AddGauge(mName, models.Gauge(*mValue))
+		err := hl.storage.AddGauge(mName, models.Gauge(*mValue))
+		if err != nil {
+			logger.Error(fmt.Errorf("add gauge failed: %w", err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		curVal, err := hl.storage.GetCurrentGauge(mName)
 		if err != nil {
-			logger.Log(err.Error())
+
+			logger.Error(fmt.Errorf("read gauge failed: %w", err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -49,10 +57,16 @@ func (hl *MMHandler) ReceiveJSONMetrics(w http.ResponseWriter, r *http.Request) 
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		hl.storage.AddCounter(mName, models.Counter(*mDelta))
+		err := hl.storage.AddCounter(mName, models.Counter(*mDelta))
+		if err != nil {
+			logger.Error(fmt.Errorf("add counter failed: %w", err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		curVal, err := hl.storage.GetCounter(mName)
 		if err != nil {
-			logger.Log(err.Error())
+			// logger.Log(err.Error())
+			logger.Error(fmt.Errorf("read counter failed: %w", err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

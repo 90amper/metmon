@@ -27,6 +27,7 @@ func init() {
 	pflag.StringVarP(&Config.ServerURL, "address", "a", "localhost:8080", "server URL")
 	pflag.IntVarP(&Config.StoreInterval, "storeint", "i", 300, "metrics store interval")
 	pflag.BoolVarP(&Config.Restore, "restore", "r", true, "restore metrics after startup")
+	pflag.StringVarP(&Config.DatabaseDsn, "database-dsn", "d", "postgresql://postgres:postgres@localhost:5454/store", "database dsn")
 	pflag.Parse()
 
 	env.Parse(&Config)

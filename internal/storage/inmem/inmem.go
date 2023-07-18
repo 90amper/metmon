@@ -21,6 +21,10 @@ func NewInMem(cfg *models.Config) *MemStorage {
 	}
 }
 
+func (s *MemStorage) PingDB() error {
+	return fmt.Errorf("not supported in memory storage")
+}
+
 func (s *MemStorage) AddGauge(name string, value models.Gauge) error {
 	if s.Gauges == nil {
 		s.Gauges = make(models.GaugeStore)

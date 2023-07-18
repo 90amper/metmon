@@ -2,7 +2,6 @@ package storage
 
 import (
 	"github.com/90amper/metmon/internal/models"
-	"github.com/90amper/metmon/internal/storage/inmem"
 )
 
 type Storager interface {
@@ -19,8 +18,10 @@ type Storager interface {
 	SaveToFile() error
 	LoadFromFile() error
 	Dumper() error
+	PingDB() error
 }
 
-func NewStorage(cfg *models.Config) Storager {
-	return inmem.NewInMem(cfg)
-}
+// func NewStorage(cfg *models.Config) Storager {
+// 	// return inmem.NewInMem(cfg)
+// 	return sqlbase.NewSqlBase(cfg)
+// }
