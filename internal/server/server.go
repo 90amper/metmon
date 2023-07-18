@@ -116,9 +116,11 @@ func Run() (err error) {
 		return err
 	}
 	if config.Config.Restore {
-		err = srv.Storage.LoadFromFile()
-		if err != nil {
-			logger.Log(err.Error())
+		if config.Config.DatabaseDsn == "" {
+			err = srv.Storage.LoadFromFile()
+			if err != nil {
+				logger.Log(err.Error())
+			}
 		}
 	}
 

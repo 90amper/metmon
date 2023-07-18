@@ -10,6 +10,7 @@ import (
 
 	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/models"
+	"github.com/90amper/metmon/internal/utils"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -33,16 +34,30 @@ func NewSQLBase(cfg *models.Config) *SQLBase {
 	// ps := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 	// 	`localhost`, `video`, `XXXXXXXX`, `video`)
 
+	// var db *sql.DB
+	// utils.Retryer(func() error {
+	// 	db, err = sql.Open("pgx", cfg.DatabaseDsn)
+	// 	return err
+	// })
 	db, err := sql.Open("pgx", cfg.DatabaseDsn)
+
 	if err != nil {
 		panic(err)
 	}
 	sb.db = db
 
-	// sb.db.Ping()
-	// if err != nil {
-	// 	panic(err)
-	// }
+	logger.Log("Wait for DB reply... $")
+	utils.Retryer(func() error {
+		err = sb.db.Ping()
+		return err
+	})
+	// err = sb.db.Ping()
+	if err != nil {
+		logger.Printf("FAILED\n")
+		// return fmt.Errorf("DB ping failed: %v", err)
+		panic(err)
+	}
+	logger.Printf("OK\n")
 
 	if sb.reset {
 		err := sb.drop()
