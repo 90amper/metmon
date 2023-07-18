@@ -188,7 +188,7 @@ func (sb *SQLBase) GetCounters() (models.CounterStore, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var m sqlmetric
-		err = rows.Scan(&m.time, &m.mtype, &m.time, &m.cvalue, &m.gvalue)
+		err = rows.Scan(&m.time, &m.name, &m.mtype, &m.cvalue, &m.gvalue)
 		if err != nil {
 			return cs, err
 		}
@@ -214,7 +214,7 @@ func (sb *SQLBase) GetCurrentGauges() (models.GaugeList, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var m sqlmetric
-		err = rows.Scan(&m.time, &m.mtype, &m.time, &m.cvalue, &m.gvalue)
+		err = rows.Scan(&m.time, &m.name, &m.mtype, &m.cvalue, &m.gvalue)
 		if err != nil {
 			return gl, err
 		}

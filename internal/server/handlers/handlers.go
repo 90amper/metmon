@@ -106,14 +106,14 @@ func (hl *MMHandler) GetAllMetrics(w http.ResponseWriter, r *http.Request) {
 
 	gauges, err := hl.storage.GetCurrentGauges()
 	if err != nil {
-		logger.Log(err.Error())
+		logger.Error(fmt.Errorf("error read gauges: %w", err))
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 	counters, err := hl.storage.GetCounters()
 	if err != nil {
-		logger.Log(err.Error())
+		logger.Error(fmt.Errorf("error read counters: %w", err))
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
