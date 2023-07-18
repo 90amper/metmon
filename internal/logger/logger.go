@@ -46,6 +46,7 @@ func NewDebugLogger() zap.SugaredLogger {
 	config.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	config.OutputPaths = []string{"stdout"}
 	config.DisableCaller = true
+	config.Level.SetLevel(zapcore.InfoLevel)
 	lgr, err := config.Build()
 	if err != nil {
 		panic(err)

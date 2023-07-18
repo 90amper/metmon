@@ -64,13 +64,16 @@ func Logger(h http.Handler) http.Handler {
 			"_uri:", r.RequestURI,
 			"_method:", r.Method,
 			// "body", spew.Sprintf("%#v", buf),
-			"_req_body:", fmt.Sprint(strings.ReplaceAll(string(buf), "\"", "")),
-			"_resp_body:", fmt.Sprint(strings.ReplaceAll(strings.Join(strings.Fields(responseData.body.String()), " "), "\"", "")),
-			// "body", fmt.Sprint(strings.ReplaceAll(string(buf), "\\", "")),
-			// "body", fmt.Sprint(string(buf)),
+			// "_req_body:", fmt.Sprint(strings.ReplaceAll(string(buf), "\"", "")),
+			// "_resp_body:", fmt.Sprint(strings.ReplaceAll(strings.Join(strings.Fields(responseData.body.String()), " "), "\"", "")),
 			"_status:", responseData.status,
 			"_duration:", duration,
 			"_size:", responseData.size,
+		)
+
+		sugar.Debugln(
+			"_req_body:", fmt.Sprint(strings.ReplaceAll(string(buf), "\"", "")),
+			"_resp_body:", fmt.Sprint(strings.ReplaceAll(strings.Join(strings.Fields(responseData.body.String()), " "), "\"", "")),
 		)
 	}
 	return http.HandlerFunc(logFn)
