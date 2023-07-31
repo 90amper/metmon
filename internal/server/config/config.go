@@ -30,7 +30,12 @@ func init() {
 	pflag.StringVarP(&Config.DatabaseDsn, "database-dsn", "d", "", "database dsn")
 	pflag.BoolVarP(&Config.Cleanup, "cleanup", "c", false, "recreate schema at startup")
 	// postgresql://postgres:postgres@localhost:5454/store
+	pflag.StringVarP(&Config.HashKey, "hash-key", "k", "$ecretKey", "hash secret key")
+	// pflag.StringVarP(&Config.HashAlg, "hash-alg", "h", "SHA256", "hash algorithm")
+
 	pflag.Parse()
 
 	env.Parse(&Config)
+
+	Config.HashAlg = "SHA256"
 }

@@ -30,4 +30,6 @@ type Config struct {
 	ProjPath        string
 	Cleanup         bool
 	DatabaseDsn     string `env:"DATABASE_DSN"`
+	HashKey         string `env:"KEY"`
+	HashAlg         string `env:"HASH_ALG"`
 }

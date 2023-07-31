@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/90amper/metmon/internal/logger"
+	"github.com/90amper/metmon/internal/middleware/hashmdw"
 	"github.com/90amper/metmon/internal/server/config"
 	"github.com/90amper/metmon/internal/server/handlers"
 	"github.com/90amper/metmon/internal/storage"
@@ -40,6 +41,11 @@ func (s *Server) NewRouter() *chi.Mux {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+	if config.Config.HashKey != "" {
+		hasher := hashmdw.Init(config.Config.HashKey, config.Config.HashAlg)
+		r.Use(hasher.HashMiddleware)
+		logger.Log("Hashing activated, key: %v", config.Config.HashKey)
+	}
 	r.Use(mdw.GzipMiddleware)
 	r.Use(mdw.Logger)
 	FileServer(r, "/html", http.Dir(s.FsPath))
