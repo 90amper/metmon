@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 	"github.com/davecgh/go-spew/spew"
@@ -76,75 +77,28 @@ func (s *Sender) Post(path string, body interface{}) error {
 	return nil
 }
 
-func (s *Sender) SendStore() (err error) {
-	err = s.SendGauges()
-	if err != nil {
-		return
-	}
-	err = s.storage.CleanGauges()
-	if err != nil {
-		return
-	}
+func (s *Sender) BatchSend() (err error) {
+	basePath := "updates/"
 
-	err = s.SendCounters()
-	if err != nil {
-		return
-	}
-	err = s.storage.ResetCounters()
-	if err != nil {
-		return
-	}
-
-	return nil
-}
-
-func (s *Sender) SendGauges() error {
-	basePath := "update"
-	gauges, err := s.storage.GetGauges()
+	marr, err := s.storage.GetAllMetrics()
 	if err != nil {
 		return err
 	}
-	if gauges == nil {
-		return nil
-	}
-	for name, values := range gauges {
-		for _, value := range values {
-			val := float64(value)
-			metr := models.Metric{
-				ID:    name,
-				MType: "gauge",
-				Value: &val,
-			}
-			err := s.Post(basePath, metr)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-		}
-	}
-	return nil
-}
 
-func (s *Sender) SendCounters() error {
-	basePath := "update"
-	counters, err := s.storage.GetCounters()
-	if err != nil {
-		return err
-	}
-	if counters == nil {
+	if len(marr) == 0 {
 		return nil
 	}
-	for name, value := range counters {
-		val := int64(value)
-		metr := models.Metric{
-			ID:    name,
-			MType: "counter",
-			Delta: &val,
-		}
-		err := s.Post(basePath, metr)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+
+	err = s.Post(basePath, marr)
+	if err != nil {
+		logger.Error(err)
 	}
+
+	err = s.storage.Purge()
+	if err != nil {
+		logger.Error(err)
+	}
+
 	return nil
 }
 
@@ -152,7 +106,7 @@ func (s *Sender) Run(wg *sync.WaitGroup) error {
 	fmt.Println("Sender started")
 	defer wg.Done()
 	for {
-		err := s.SendStore()
+		err := s.BatchSend()
 		if err != nil {
 			return err
 		}

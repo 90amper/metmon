@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/models"
 )
 
@@ -30,4 +32,24 @@ func ParseCounter(str string) (res models.Counter, err error) {
 		return 0, err
 	}
 	return models.Counter(vali), nil
+}
+
+// Use: write helper function that returns error
+func Retryer(fn func() error) error {
+	var err error
+	for i := 0; i <= 3; i++ {
+		if i == 1 {
+			logger.Log("attempting to retry $")
+		}
+		if i > 0 {
+			logger.Printf("<%d> ", i)
+			delay := time.Duration(i*2-1) * time.Second
+			time.Sleep(delay)
+		}
+		err = fn()
+		if err == nil {
+			return nil
+		}
+	}
+	return err
 }

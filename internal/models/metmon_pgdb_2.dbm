@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+ Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="1.0.2" use-changelog="false" last-position="0,0" last-zoom="1" max-obj-count="6"
+	 default-schema="public" default-owner="postgres"
+	 layers="Default layer"
+	 active-layers="0"
+	 layer-name-colors="#000000"
+	 layer-rect-colors="#b4b4b4"
+	 show-layer-names="false" show-layer-rects="false">
+<database name="store" encoding="UTF8" lc-collate="Russian_Russia.1251" lc-ctype="Russian_Russia.1251" is-template="false" allow-conns="true">
+	<role name="postgres"/>
+	<tablespace name="pg_default"/>
+</database>
+
+<schema name="public" layers="0" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<schema name="metmon" layers="0" rect-visible="true" fill-color="#4fbb9f">
+	<role name="postgres"/>
+</schema>
+
+<table name="gauges" layers="0" collapse-mode="2" max-obj-count="4" z-value="0">
+	<schema name="metmon"/>
+	<role name="postgres"/>
+	<position x="660" y="240"/>
+	<column name="gauge_id" not-null="true"
+	 identity-type="ALWAYS" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="timestamp" not-null="true" default-value="now()">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="gvalue" not-null="true">
+		<type name="double precision" length="0"/>
+	</column>
+	<column name="metric_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="gauges_pk" type="pk-constr" table="metmon.gauges">
+		<columns names="gauge_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="gauges_gauge_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1" sql-disabled="true">
+	<schema name="metmon"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="counters" layers="0" collapse-mode="2" max-obj-count="4" z-value="0">
+	<schema name="metmon"/>
+	<role name="postgres"/>
+	<position x="700" y="60"/>
+	<column name="counter_id" not-null="true"
+	 identity-type="ALWAYS" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="timestamp" not-null="true" default-value="now()">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="cvalue" not-null="true">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="metric_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="counters_pk" type="pk-constr" table="metmon.counters">
+		<columns names="counter_id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="counters_uq" type="uq-constr" table="metmon.counters">
+		<columns names="metric_id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="counters_counter_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1" sql-disabled="true">
+	<schema name="metmon"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="metrics" layers="0" collapse-mode="2" max-obj-count="3" z-value="0">
+	<schema name="metmon"/>
+	<role name="postgres"/>
+	<position x="160" y="120"/>
+	<column name="metric_id" not-null="true"
+	 identity-type="ALWAYS" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="character varying" length="0"/>
+	</column>
+	<column name="type" not-null="true">
+		<type name="boolean" length="0"/>
+		<comment> <![CDATA[is gauge]]> </comment>
+	</column>
+	<constraint name="metrics_pk" type="pk-constr" table="metmon.metrics">
+		<columns names="metric_id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="uniq_name" type="uq-constr" table="metmon.metrics">
+		<columns names="name" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="metrics_metric_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1" sql-disabled="true">
+	<schema name="metmon"/>
+	<role name="postgres"/>
+</sequence>
+
+<view name="current_metrics" layers="0" collapse-mode="2" max-obj-count="1" z-value="0">
+	<schema name="metmon"/>
+	<role name="postgres"/>
+	<position x="200" y="340"/>
+	<reference>
+		<expression> <![CDATA[ SELECT COALESCE(gm."timestamp", c."timestamp") AS "time",
+    m.name,
+    m.type,
+    COALESCE(c.cvalue, 0) as "cvalue",
+    COALESCE(gm.gvalue, 0) as "gvalue"
+   FROM ((metmon.metrics m
+     LEFT JOIN metmon.counters c ON ((m.metric_id = c.metric_id)))
+     LEFT JOIN ( SELECT DISTINCT ON (g.metric_id) g."timestamp",
+            g.metric_id,
+            g.gvalue
+           FROM metmon.gauges g
+          ORDER BY g.metric_id, g."timestamp" DESC) gm ON ((m.metric_id = gm.metric_id)));]]> </expression>
+	<column name="time">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="name">
+		<type name="character varying" length="0"/>
+	</column>
+	<column name="type">
+		<type name="boolean" length="0"/>
+	</column>
+	<column name="cvalue">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="gvalue">
+		<type name="double precision" length="0"/>
+	</column>
+		<reftable name="metmon.gauges"/>
+		<reftable name="metmon.counters"/>
+		<reftable name="metmon.metrics"/>
+	</reference>
+</view>
+
+<relationship name="rel_newview_gauges" type="reltv" layers="0"
+	 custom-color="#7ebe39"
+	 src-table="metmon.current_metrics"
+	 dst-table="metmon.gauges"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_newview_counters" type="reltv" layers="0"
+	 custom-color="#53039e"
+	 src-table="metmon.current_metrics"
+	 dst-table="metmon.counters"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_newview_metrics" type="reltv" layers="0"
+	 custom-color="#addfcd"
+	 src-table="metmon.current_metrics"
+	 dst-table="metmon.metrics"
+	 src-required="false" dst-required="false"/>
+
+<constraint name="metrics_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="CASCADE" del-action="SET NULL" ref-table="metmon.metrics" table="metmon.gauges">
+	<columns names="metric_id" ref-type="src-columns"/>
+	<columns names="metric_id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="metrics_fk" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="CASCADE" del-action="SET NULL" ref-table="metmon.metrics" table="metmon.counters">
+	<columns names="metric_id" ref-type="src-columns"/>
+	<columns names="metric_id" ref-type="dst-columns"/>
+</constraint>
+
+<relationship name="rel_gauges_metrics" type="relfk" layers="0"
+	 custom-color="#0eafbc"
+	 src-table="metmon.gauges"
+	 dst-table="metmon.metrics" reference-fk="metrics_fk"
+	 src-required="false" dst-required="true"/>
+
+<relationship name="rel_counters_metrics" type="relfk" layers="0"
+	 custom-color="#68a4b8"
+	 src-table="metmon.counters"
+	 dst-table="metmon.metrics" reference-fk="metrics_fk"
+	 src-required="false" dst-required="true"/>
+
+</dbmodel>
