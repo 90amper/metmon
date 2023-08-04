@@ -10,6 +10,9 @@ import (
 
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
+
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 )
 
 type Collector struct {
@@ -28,6 +31,7 @@ func NewCollector(config models.Config, storage storage.Storager) (*Collector, e
 func (c *Collector) Collect() error {
 	c.ReadRuntimeMetrics()
 	c.ReadAddonMetrics()
+	c.ReadComputeMetrics()
 	return nil
 }
 
@@ -56,6 +60,20 @@ func (c *Collector) ReadAddonMetrics() {
 	c.Storage.TickCounter("PollCount")
 	c.Storage.AddGauge("RandomValue", models.Gauge(rand.Float64()))
 
+}
+
+func (c *Collector) ReadComputeMetrics() {
+	memStat, _ := mem.VirtualMemory()
+	totalMemory := memStat.Total
+	freeMemory := memStat.Free
+
+	c.Storage.AddGauge("TotalMemory", models.Gauge(totalMemory))
+	c.Storage.AddGauge("FreeMemory", models.Gauge(freeMemory))
+
+	CPUutilization, _ := cpu.Percent(0, true)
+	for core, cpu := range CPUutilization {
+		c.Storage.AddGauge(fmt.Sprintf("CPUutilization%d", core), models.Gauge(cpu))
+	}
 }
 
 func (c *Collector) Run(wg *sync.WaitGroup) error {

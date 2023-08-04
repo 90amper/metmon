@@ -11,15 +11,16 @@ import (
 	"time"
 
 	"github.com/90amper/metmon/internal/logger"
+	mdw "github.com/90amper/metmon/internal/middleware"
+	"github.com/90amper/metmon/internal/middleware/hashmdw"
 	"github.com/90amper/metmon/internal/server/config"
 	"github.com/90amper/metmon/internal/server/handlers"
 	"github.com/90amper/metmon/internal/storage"
 	"github.com/90amper/metmon/internal/storage/inmem"
 	"github.com/90amper/metmon/internal/storage/sqlbase"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-
-	mdw "github.com/90amper/metmon/internal/middleware"
 )
 
 type Server struct {
@@ -40,6 +41,11 @@ func (s *Server) NewRouter() *chi.Mux {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+	if config.Config.HashKey != "" {
+		hasher := hashmdw.Init(config.Config.HashKey, config.Config.HashAlg)
+		r.Use(hasher.HashMiddleware)
+		logger.Log("Hashing activated, key: %v", config.Config.HashKey)
+	}
 	r.Use(mdw.GzipMiddleware)
 	r.Use(mdw.Logger)
 	FileServer(r, "/html", http.Dir(s.FsPath))

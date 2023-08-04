@@ -16,12 +16,16 @@ type Agent struct {
 	Storage        storage.Storager
 	Collector      *collector.Collector
 	Sender         *sender.Sender
+	HashKey        *string
+	HashAlg        *string
 }
 
 func NewAgent() (agent *Agent, err error) {
 	var a Agent
 	a.PollInterval = time.Duration(config.Config.PollInterval) * time.Second
 	a.ReportInterval = time.Duration(config.Config.ReportInterval) * time.Second
+	a.HashAlg = &config.Config.HashAlg
+	a.HashKey = &config.Config.HashKey
 	a.Storage = inmem.NewInMem(&config.Config)
 	a.Collector, err = collector.NewCollector(config.Config, a.Storage)
 	if err != nil {

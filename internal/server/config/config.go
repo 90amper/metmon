@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/90amper/metmon/internal/models"
+
 	"github.com/caarlos0/env/v6"
 	pflag "github.com/spf13/pflag"
 )
@@ -29,8 +30,11 @@ func init() {
 	pflag.BoolVarP(&Config.Restore, "restore", "r", true, "restore metrics after startup")
 	pflag.StringVarP(&Config.DatabaseDsn, "database-dsn", "d", "", "database dsn")
 	pflag.BoolVarP(&Config.Cleanup, "cleanup", "c", false, "recreate schema at startup")
-	// postgresql://postgres:postgres@localhost:5454/store
+	pflag.StringVarP(&Config.HashKey, "hash-key", "k", "", "hash secret key")
+
 	pflag.Parse()
 
 	env.Parse(&Config)
+
+	Config.HashAlg = "SHA256"
 }

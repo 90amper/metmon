@@ -3,8 +3,10 @@ package sender
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -12,6 +14,8 @@ import (
 	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
+	"github.com/90amper/metmon/pkg/hasher"
+
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -20,6 +24,8 @@ type Sender struct {
 	destURL        string
 	reportInterval time.Duration
 	storage        storage.Storager
+	hashKey        string
+	hashAlg        string
 }
 
 func NewSender(config models.Config, storage storage.Storager) (*Sender, error) {
@@ -29,6 +35,8 @@ func NewSender(config models.Config, storage storage.Storager) (*Sender, error) 
 		destURL:        "http://" + config.ServerURL,
 		reportInterval: reportInterval,
 		storage:        storage,
+		hashKey:        config.HashKey,
+		hashAlg:        config.HashAlg,
 	}, nil
 }
 
@@ -49,20 +57,41 @@ func Compress(data []byte) ([]byte, error) {
 func (s *Sender) Post(path string, body interface{}) error {
 	spew.Printf("%#v\n", body)
 
-	var jbuf, gbuf bytes.Buffer
+	var (
+		jbuf, gbuf bytes.Buffer
+		bodyHash   []byte
+		err        error
+	)
+
 	json.NewEncoder(&jbuf).Encode(body)
 
 	gz := gzip.NewWriter(&gbuf)
 	gz.Write(jbuf.Bytes())
 	gz.Close()
 
-	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, &gbuf)
+	hbuf, _ := io.ReadAll(&gbuf)
+	sendBuf := io.NopCloser(bytes.NewBuffer(hbuf))
+
+	if s.hashKey != "" {
+		bodyHash, err = hasher.Hash((hbuf), []byte(s.hashKey), s.hashAlg)
+		if err != nil {
+			return err
+		}
+	}
+
+	bodyHashB64 := base64.StdEncoding.EncodeToString(bodyHash)
+
+	req, err := http.NewRequest(http.MethodPost, s.destURL+"/"+path, sendBuf)
 	if err != nil {
 		return err
 	}
+	logger.Debug("Body hash: %s", bodyHashB64)
+	if s.hashKey != "" {
+		req.Header.Set("HashSHA256", string(bodyHashB64))
+	}
+
 	req.Header.Set("Content-Encoding", "gzip")
 	req.Header.Set("Content-Type", "application/json")
-
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return err

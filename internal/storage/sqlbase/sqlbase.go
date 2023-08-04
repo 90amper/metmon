@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jackc/pgerrcode"
-
 	"github.com/90amper/metmon/internal/logger"
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/utils"
+
+	"github.com/jackc/pgerrcode"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
