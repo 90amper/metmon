@@ -11,16 +11,16 @@ import (
 	"time"
 
 	"github.com/90amper/metmon/internal/logger"
+	mdw "github.com/90amper/metmon/internal/middleware"
 	"github.com/90amper/metmon/internal/middleware/hashmdw"
 	"github.com/90amper/metmon/internal/server/config"
 	"github.com/90amper/metmon/internal/server/handlers"
 	"github.com/90amper/metmon/internal/storage"
 	"github.com/90amper/metmon/internal/storage/inmem"
 	"github.com/90amper/metmon/internal/storage/sqlbase"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-
-	mdw "github.com/90amper/metmon/internal/middleware"
 )
 
 type Server struct {

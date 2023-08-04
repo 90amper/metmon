@@ -15,6 +15,7 @@ import (
 	"github.com/90amper/metmon/internal/models"
 	"github.com/90amper/metmon/internal/storage"
 	"github.com/90amper/metmon/pkg/hasher"
+
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -53,21 +54,6 @@ func Compress(data []byte) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// func Hash(value, key []byte, alg string) ([]byte, error) {
-// 	switch alg {
-// 	case "SHA256":
-// 		// подписываем алгоритмом HMAC, используя SHA-256
-// 		h := hmac.New(sha256.New, key)
-// 		h.Write(value)
-// 		dst := h.Sum(nil)
-// 		logger.Debug("%v", dst)
-// 		return dst, nil
-// 	default:
-// 		return nil, fmt.Errorf("invalid argument")
-// 	}
-
-// }
-
 func (s *Sender) Post(path string, body interface{}) error {
 	spew.Printf("%#v\n", body)
 
@@ -85,7 +71,6 @@ func (s *Sender) Post(path string, body interface{}) error {
 
 	hbuf, _ := io.ReadAll(&gbuf)
 	sendBuf := io.NopCloser(bytes.NewBuffer(hbuf))
-	// bodyHash, err := hasher.Hash(buf, []byte(hs.HashKey), hs.HashAlg)
 
 	if s.hashKey != "" {
 		bodyHash, err = hasher.Hash((hbuf), []byte(s.hashKey), s.hashAlg)

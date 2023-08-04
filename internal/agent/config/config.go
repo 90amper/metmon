@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/90amper/metmon/internal/models"
+
 	"github.com/caarlos0/env/v6"
 	pflag "github.com/spf13/pflag"
 )
@@ -13,7 +14,6 @@ func init() {
 	pflag.IntVarP(&Config.ReportInterval, "report", "r", 10, "metrics report interval")
 	pflag.IntVarP(&Config.PollInterval, "poll", "p", 2, "metrics poll interval")
 	pflag.StringVarP(&Config.HashKey, "hash-key", "k", "", "hash secret key")
-	// pflag.StringVarP(&Config.HashAlg, "hash-alg", "ha", "SHA256", "hash algorithm")
 
 	pflag.Parse()
 	env.Parse(&Config)
